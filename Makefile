@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-c
+CFLAGS=-c -g
 LDFLAGS=-lcurses
 OBJS=main.o errors.o screen.o buffer.o
 
@@ -18,3 +18,6 @@ screen.o: screen.c
 buffer.o: buffer.c
 	$(CC) $(CFLAGS) buffer.c
 
+clean: $(OBJS)
+	rm $(OBJS)
+	rm te

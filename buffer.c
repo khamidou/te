@@ -4,7 +4,12 @@
 #include "error.h"
 #include "buffer.h"
 
-struct te_char *alloc_and_insert_char(struct te_buffer *buf)
+void init_buffers(void)
+{
+	TAILQ_INIT(&buffers_head);
+}
+
+struct te_char *alloc_and_insert_char(struct te_buffer *buf, char contents)
 {
 	if (buf == NULL)
 		fail("The buffer parameter to alloc_and_insert_char is NULL");
@@ -16,6 +21,7 @@ struct te_char *alloc_and_insert_char(struct te_buffer *buf)
 
 	TAILQ_INSERT_TAIL(&buf->chars_head, c, chars);
 
+	c->contents = contents;
 	return c;
 }
 
@@ -26,6 +32,7 @@ struct te_buffer *alloc_and_insert_buffer(void)
 	if (b == NULL)
 		fail("Unable to allocate memory for te_buffer struct");
 
+	TAILQ_INIT(&b->chars_head);
 	TAILQ_INSERT_TAIL(&buffers_head, b, buffers);
 
 	return b;
@@ -50,3 +57,54 @@ void free_buffer(struct te_buffer *b)
 
 	free(b);
 }
+
+
+struct te_buffer* load_buffer(char *filename)
+{
+	FILE *fp = fopen(filename, "r");
+
+	if (fp == NULL)
+		fail("Unable to open %s", filename);
+
+	struct te_buffer *b = alloc_and_insert_buffer();
+
+	char c = getc(fp);
+
+	while(!feof(fp)) {
+		alloc_and_insert_char(b, c);
+		c = getc(fp);
+	}
+
+	return b;
+}
+
+void scroll_up(struct te_buffer *buf)
+{
+
+}
+
+void scroll_down(struct te_buffer *buf)
+{
+
+}
+
+void move_left(struct te_buffer *buf)
+{
+
+}
+
+void move_right(struct te_buffer *buf)
+{
+
+}
+
+void move_up(struct te_buffer *buf)
+{
+
+}
+
+void move_down(struct te_buffer *buf)
+{
+
+}
+
