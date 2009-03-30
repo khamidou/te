@@ -36,7 +36,7 @@ void free_char(struct te_buffer *b, struct te_char *c)
 	if (b == NULL || c == NULL)
 		fail("One of the parameters to free_char() is NULL");
 
-	TAILQ_REMOVE(&b->chars, c, chars);
+	TAILQ_REMOVE(&b->chars_head, c, chars);
 
 	free(c);
 }

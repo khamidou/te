@@ -8,7 +8,11 @@
 
 int main(int argc, char **argv)
 {
-	puts("Over the top!");
+	init_windows();
+	miniprintf("Over the top!");
+	while(1) {
+
+	}
 
 }
 
