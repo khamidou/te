@@ -10,13 +10,14 @@ int main(int argc, char **argv)
 {
 	init_buffers();
 	init_windows();
+
 	struct te_buffer *b = load_buffer("screen.c");
 	paint_buffer(b);
 	miniprintf("Over the top!");
-	statusprintf("Reverse video !");
-	while(1) {
 
-	}
+
+
+	input_loop();
 
 }
 

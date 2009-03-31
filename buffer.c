@@ -75,6 +75,7 @@ struct te_buffer* load_buffer(char *filename)
 		c = getc(fp);
 	}
 
+	statusprintf("%s", filename);
 	return b;
 }
 

@@ -5,7 +5,7 @@ void init_windows(void)
 	initscr();
 	cbreak();
 	noecho();
-	scrollok(stdscr, FALSE);
+	scrollok(stdscr, TRUE);
 	keypad(stdscr, TRUE);
 
 	buffer_win = subwin(stdscr, LINES - 2, COLS, 0, 0);
@@ -17,6 +17,8 @@ void init_windows(void)
 
 	if (signal(SIGWINCH, console_signal_handler) == SIG_ERR)
 		fail("Unable to set up the SIGWINCH signal handler");
+
+	atexit(&cleanup_windows);
 }
 
 void cleanup_windows(void)
@@ -65,12 +67,25 @@ void screen_move_down(void)
 
 void statusprintf(char *fmt, ...)
 {
+	werase(status_win);
+	wmove(status_win, 0, 0);
+
 	va_list ap;
 	va_start(ap, fmt);
 	vwprintw(status_win, fmt, ap);
 	va_end(ap);
 
-	wclrtoeol(status_win);
+	/* We have to clear the screen to the end of line because for some unexpected
+	   reason, curses doesn't want to do it
+	*/
+
+	int y, x;
+	getyx(stdscr, y, x);
+	while(x <= COLS) {
+		waddch(status_win, ' ');
+		x++;
+	}
+
 	wrefresh(status_win);
 }
 
