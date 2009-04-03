@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <curses.h>
 
 #include "zalloc.h"
 #include "error.h"
@@ -36,6 +37,22 @@ struct te_buffer *alloc_and_insert_buffer(void)
 	TAILQ_INSERT_TAIL(&buffers_head, b, buffers);
 
 	return b;
+}
+
+struct te_char *nth_char(struct te_char *c, int n)
+{
+	if (c == NULL)
+		return;
+
+	struct te_char *r = c;
+	int i = 0;
+
+	for(i = 0; r != NULL && i < n; i++)
+		r = TAILQ_NEXT(c, chars);
+
+	statusprintf("r is %x, r->contents are : %c", r, r->contents);
+	
+	return r;
 }
 
 void free_char(struct te_buffer *b, struct te_char *c)
@@ -76,6 +93,11 @@ struct te_buffer* load_buffer(char *filename)
 	}
 
 	statusprintf("%s", filename);
+
+	b->point = TAILQ_FIRST(&b->chars_head);
+	b->scr_top = b->point;
+	b->scr_bottom = nth_char(b->point, (LINES - 3) * COLS);
+
 	return b;
 }
 
@@ -86,7 +108,12 @@ void scroll_up(struct te_buffer *buf)
 
 void scroll_down(struct te_buffer *buf)
 {
+	if (buf == NULL || buf->point == NULL)
+		return;
 
+	struct te_char *c = buf->point;
+	
+	
 }
 
 void move_left(struct te_buffer *buf)

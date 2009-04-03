@@ -4,19 +4,18 @@
 
 #include <stdio.h>
 #include <curses.h>
+#include "screen.h"
 
+extern struct te_buffer *current_buf;
 
 int main(int argc, char **argv)
 {
 	init_buffers();
 	init_windows();
 
-	struct te_buffer *b = load_buffer("screen.c");
-	paint_buffer(b);
-	miniprintf("Over the top!");
-
-
-
+	current_buf = load_buffer("screen.c");
+	paint_buffer(current_buf);
+	refresh();
 	input_loop();
 
 }

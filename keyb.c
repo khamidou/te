@@ -8,6 +8,10 @@ void input_loop(void)
 		switch(c) {
 		case 'q':
 			exit(0);
+
+		case 'k':
+			screen_move_down(current_buf);
+			break;
 		}
 	}
 
