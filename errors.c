@@ -8,6 +8,7 @@ void fail(char *fmt, ...)
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
 
+	fflush(stdout);
 	exit(EXIT_FAILURE);
 }
 

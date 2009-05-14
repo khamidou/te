@@ -34,65 +34,73 @@ void paint_buffer(struct te_buffer *buf)
 
 	wmove(buffer_win, 0, 0);
 
-	struct te_char *c;
+	char c;
 	int i = 0;
 
-	for(c = buf->scr_top; c != buf->scr_bottom; c = TAILQ_NEXT(c, chars)) {
-		if (++i > (LINES - 3) * COLS)
-			break;
-		else
-			waddch(buffer_win, c->contents);
-	}
-	miniprintf("%d", i);
+	for(i = 0; i < (LINES - 3) * COLS; i++) 
+		waddch(buffer_win, bchar(buf->contents, i));
+	
 	wmove(buffer_win, 0, 0);
 	refresh();
 }
 
-void screen_move_left(struct te_buffer *buf)
+
+void scroll_up(struct te_buffer *buf)
 {
 
 }
 
-void screen_move_right(struct te_buffer *buf)
+void scroll_down(struct te_buffer *buf)
 {
 
 }
 
-void screen_move_up(struct te_buffer *buf)
+void move_left(struct te_buffer *buf)
 {
 	if (buf == NULL)
 		return;
 
-	if (buf->scr_top == NULL || buf->scr_bottom == NULL)
-		fail("FATAL: buf->scr_top or buf->scr_bottom is NULL\n");
+	if (buf->x > 0)
+		buf->x--;
+	else if (buf->y > 0) {
+		buf->y--;
+		/* Move the cursor to the last character of the previous string */
+		int c_offset = bstrrchrp(buf->contents, '\n', buf->point);
+		int p_offset = bstrrchrp(buf->contents, '\n', c_offset);
+		
+		/* We compute the difference between the two numbers to get the row number to move the cursor to */
+		buf->x = c_offset - p_offset;
+	}
 
-	scrollok(buffer_win, TRUE);
-	wscrl(buffer_win, -1);
-	
-	wmove(buffer_win, LINES - 3, 0);
-	struct te_char *c = buf->scr_bottom;
-
-	for (c = buf->scr_bottom; c != NULL && c->contents != '\n'; c = TAILQ_NEXT(c, chars))
-		addch(c->contents);
-	
-	buf->scr_bottom = c;
-
-	/* Update scr_top accordingly */
-	c = buf->scr_top;
-	for (c = buf->scr_top; c != NULL && c->contents != '\n'; c = TAILQ_NEXT(c, chars))
-		continue;
-	
-	buf->scr_top = c;
-
-	scrollok(buffer_win, FALSE);
-
-	wrefresh(buffer_win);
+	prev_char(buf);
+	wmove(buffer_win, buf->y, buf->x);
 }
 
-void screen_move_down(struct te_buffer *buf)
+void move_right(struct te_buffer *buf)
 {
-	scroll(buffer_win);
-	wrefresh(buffer_win);
+	if (buf == NULL)
+		return;
+
+	if (buf->x < COLS)
+		buf->x++;
+	else if (buf->y < LINES) {
+		buf->y++;
+		buf->x = 0;
+	}
+
+	next_char(buf);
+	wmove(buffer_win, buf->y, buf->x);
+
+}
+
+void move_up(struct te_buffer *buf)
+{
+
+}
+
+void move_down(struct te_buffer *buf)
+{
+
 }
 
 void statusprintf(char *fmt, ...)

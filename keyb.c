@@ -10,9 +10,15 @@ void input_loop(void)
 			exit(0);
 
 		case 'k':
-			screen_move_down(current_buf);
+			move_left(current_buf);
+			break;
+
+		case 'l':
+			move_right(current_buf);
 			break;
 		}
+
+		refresh();
 	}
 
 }
