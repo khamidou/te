@@ -1,6 +1,6 @@
 /*
   te, a small text editor for unix.
- */
+*/
 
 #include <stdio.h>
 #include <curses.h>

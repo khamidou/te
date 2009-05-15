@@ -61,19 +61,18 @@ void move_left(struct te_buffer *buf)
 		return;
 
 	if (buf->x > 0)
-		buf->x--;
+		if (bchar(buf->contents, buf->point) == '\t')
+			buf->x -= TAB_LEN;
+		else
+			buf->x--;
+
 	else if (buf->y > 0) {
 		buf->y--;
-		/* Move the cursor to the last character of the previous string */
-		int c_offset = bstrrchrp(buf->contents, '\n', buf->point);
-		int p_offset = bstrrchrp(buf->contents, '\n', c_offset);
-		
-		/* We compute the difference between the two numbers to get the row number to move the cursor to */
-		buf->x = c_offset - p_offset;
+		buf->x = screen_line_length(buf->contents, buf->point);
 	}
 
 	prev_char(buf);
-	wmove(buffer_win, buf->y, buf->x);
+	move(buf->y, buf->x);
 }
 
 void move_right(struct te_buffer *buf)
@@ -81,16 +80,25 @@ void move_right(struct te_buffer *buf)
 	if (buf == NULL)
 		return;
 
-	if (buf->x < COLS)
-		buf->x++;
-	else if (buf->y < LINES) {
+	if (next_char(buf) == ERR) /* last char of the document */
+		return;
+
+	if (buf->x < screen_line_length(buf->contents, buf->point)) {
+		/* tab is the only character larger than 1 */
+		if (bchar(buf->contents, buf->point) == '\t')
+			buf->x += TAB_LEN;
+		else
+			buf->x++;
+	}
+	else if (buf->y < LINES - 3) {
 		buf->y++;
 		buf->x = 0;
 	}
 
-	next_char(buf);
-	wmove(buffer_win, buf->y, buf->x);
 
+	move(buf->y, buf->x);
+	refresh();
+	miniprintf("%c, y: %d, x%d", bchar(buf->contents, buf->point), buf->y, buf->x);
 }
 
 void move_up(struct te_buffer *buf)

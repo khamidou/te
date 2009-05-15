@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "bstrlib.h"
 #include "queue.h"
-
+#include "config.h"
 
 struct te_buffer {
 	char *name;
@@ -28,8 +28,10 @@ void				free_buffer(struct te_buffer *b);
 struct te_buffer* 		load_buffer(char *filename);
 
 void 				init_buffers(void);
-void				prev_char(struct te_buffer *buf);
-void				next_char(struct te_buffer *buf);
+int 				line_length(bstring b, int point);
+int 				screen_line_length(bstring b, int point);
+int				prev_char(struct te_buffer *buf);
+int				next_char(struct te_buffer *buf);
 
 
 
