@@ -55,30 +55,67 @@ void scroll_down(struct te_buffer *buf)
 
 }
 
+void screen_prev_line(struct te_buffer *buf)
+{
+	if (buf == NULL)
+		return;
+
+	buf->x = 0;
+	if (buf->y > 0)
+		buf->y--;
+}
+
+void screen_next_line(struct te_buffer *buf)
+{
+	if (buf == NULL)
+		return;
+
+	buf->x = 0;
+	if (buf->y < LINES)
+		buf->y++;
+}
+
 void move_left(struct te_buffer *buf)
 {
 	if (buf == NULL)
 		return;
 
+	if (bchar(buf->contents, buf->point) == '\n') {
+		screen_prev_line(buf);
+		prev_char(buf);
+		return;
+	}
+
+	if(prev_char(buf) == ERR)
+		return;
+
 	if (buf->x > 0)
 		if (bchar(buf->contents, buf->point) == '\t')
 			buf->x -= TAB_LEN;
-		else
+		else {
 			buf->x--;
+		}
 
 	else if (buf->y > 0) {
 		buf->y--;
 		buf->x = screen_line_length(buf->contents, buf->point);
 	}
 
-	prev_char(buf);
 	move(buf->y, buf->x);
+	refresh();
+	miniprintf("%c, y: %d, x%d", bchar(buf->contents, buf->point), buf->y, buf->x);
 }
 
 void move_right(struct te_buffer *buf)
 {
 	if (buf == NULL)
 		return;
+
+	if (bchar(buf->contents, buf->point) == '\n') {
+		screen_next_line(buf);
+		next_char(buf);
+		return;
+	}
 
 	if (next_char(buf) == ERR) /* last char of the document */
 		return;
@@ -87,8 +124,9 @@ void move_right(struct te_buffer *buf)
 		/* tab is the only character larger than 1 */
 		if (bchar(buf->contents, buf->point) == '\t')
 			buf->x += TAB_LEN;
-		else
+		else {
 			buf->x++;
+		}
 	}
 	else if (buf->y < LINES - 3) {
 		buf->y++;

@@ -26,14 +26,6 @@ struct te_buffer *alloc_and_insert_buffer(void)
 	return b;
 }
 
-struct te_char *nth_char(struct te_char *c, int n)
-{
-}
-
-void free_char(struct te_buffer *b, struct te_char *c)
-{
-}
-
 void free_buffer(struct te_buffer *b)
 {
 	if (b == NULL)
@@ -43,7 +35,6 @@ void free_buffer(struct te_buffer *b)
 
 	free(b);
 }
-
 
 struct te_buffer* load_buffer(char *filename)
 {
@@ -67,7 +58,6 @@ struct te_buffer* load_buffer(char *filename)
 }
 
 /* Compute the length of a string between two '\n' */
-
 int line_length(bstring b, int point)
 {
 	if (b == NULL)
@@ -98,7 +88,7 @@ int screen_line_length(bstring b, int point)
 
 	for (i = 0; i < len; i++) {
 		if (bchar(b, point - i) == '\t')
-			count += 8;
+			count += TAB_LEN;
 		else
 			count += 1;
 	}

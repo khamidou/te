@@ -10,10 +10,12 @@ void input_loop(void)
 			exit(0);
 
 		case 'k':
+		case KEY_LEFT:
 			move_left(current_buf);
 			break;
 
 		case 'l':
+		case KEY_RIGHT:
 			move_right(current_buf);
 			break;
 		}
