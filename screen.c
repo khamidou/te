@@ -60,9 +60,10 @@ void screen_prev_line(struct te_buffer *buf)
 	if (buf == NULL)
 		return;
 
-	buf->x = 0;
-	if (buf->y > 0)
+	if (buf->y > 0) {
 		buf->y--;
+		buf->x = screen_line_length(buf->contents, buf->point);
+	}
 }
 
 void screen_next_line(struct te_buffer *buf)
@@ -75,78 +76,90 @@ void screen_next_line(struct te_buffer *buf)
 		buf->y++;
 }
 
-void move_left(struct te_buffer *buf)
+void screen_move_left(struct te_buffer *buf)
 {
 	if (buf == NULL)
 		return;
 
-	if (bchar(buf->contents, buf->point) == '\n') {
-		screen_prev_line(buf);
-		prev_char(buf);
+	if(move_left(buf) == ERR)
 		return;
-	}
-
-	if(prev_char(buf) == ERR)
-		return;
-
-	if (buf->x > 0)
-		if (bchar(buf->contents, buf->point) == '\t')
-			buf->x -= TAB_LEN;
-		else {
-			buf->x--;
-		}
-
-	else if (buf->y > 0) {
-		buf->y--;
-		buf->x = screen_line_length(buf->contents, buf->point);
+	
+	if (curr_char(buf) == '\n') {
+			screen_prev_line(buf);
+	} else { 
+		if (buf->x > 0)
+			if (curr_char(buf) == '\t') {
+				buf->x -= TAB_LEN;
+			} else {
+					buf->x--;
+			}
 	}
 
 	move(buf->y, buf->x);
-	refresh();
-	miniprintf("%c, y: %d, x%d", bchar(buf->contents, buf->point), buf->y, buf->x);
 }
 
-void move_right(struct te_buffer *buf)
+void screen_move_right(struct te_buffer *buf)
 {
 	if (buf == NULL)
 		return;
 
-	if (bchar(buf->contents, buf->point) == '\n') {
+	if (move_right(buf) == ERR) /* last char of the document */
+		return;
+
+	if (prev_char(buf) == '\n') {
 		screen_next_line(buf);
-		next_char(buf);
-		return;
-	}
-
-	if (next_char(buf) == ERR) /* last char of the document */
-		return;
-
-	if (buf->x < screen_line_length(buf->contents, buf->point)) {
+	} else { 
+		if (buf->x <= screen_line_length(buf->contents, buf->point)) {
 		/* tab is the only character larger than 1 */
-		if (bchar(buf->contents, buf->point) == '\t')
-			buf->x += TAB_LEN;
-		else {
-			buf->x++;
+			if (prev_char(buf) == '\t') {
+				buf->x += TAB_LEN;
+			} else {
+				buf->x++;
+			}
+		}
+
+		else { /* FIXME: scroll the screen instead of testing this
+			  condition
+		       */
+			screen_next_line(buf);
 		}
 	}
-	else if (buf->y < LINES - 3) {
-		buf->y++;
-		buf->x = 0;
-	}
-
 
 	move(buf->y, buf->x);
-	refresh();
-	miniprintf("%c, y: %d, x%d", bchar(buf->contents, buf->point), buf->y, buf->x);
 }
 
-void move_up(struct te_buffer *buf)
+void screen_move_up(struct te_buffer *buf)
 {
+	if (buf == NULL)
+		return;
 
+	
 }
 
-void move_down(struct te_buffer *buf)
+void screen_move_down(struct te_buffer *buf)
 {
+	if (buf == NULL)
+		return;
 
+	int 	line_len  = line_length(buf->contents, buf->point);
+	int	sline_len = screen_line_length(buf->contents, buf->point);
+	int 	count = 0;
+
+	do {
+		/* move until the end of line */
+		if(move_right(buf) == ERR)
+			break;
+
+	} while(curr_char(buf) != '\n');
+
+	screen_next_line(buf);
+
+	for(count = 0; count < line_len && curr_char(buf) != '\n'; count++) {
+		move_right(buf);
+		screen_move_right(buf);
+	}
+
+	return;
 }
 
 void statusprintf(char *fmt, ...)

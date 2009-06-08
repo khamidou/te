@@ -2,6 +2,7 @@
 #define __BUFFER_H__
 
 #include <stdio.h>
+#include <Python.h>
 #include "bstrlib.h"
 #include "queue.h"
 #include "config.h"
@@ -13,6 +14,8 @@ struct te_buffer {
 	bstring contents;
 	int point;		/* offset in "contents" */
 	struct te_char *scr_top, *scr_bottom; /* the first and last char of the screen */
+
+	PyObject *pyBuffer;	/* pointer to the buffer object */
 
 	TAILQ_HEAD(te_chars_head, te_char) chars_head;
 	TAILQ_ENTRY(te_buffer) buffers;
@@ -31,8 +34,10 @@ void 				init_buffers(void);
 int 				line_length(bstring b, int point);
 int 				screen_line_length(bstring b, int point);
 int				prev_char(struct te_buffer *buf);
+int 				curr_char(struct te_buffer *buf);
 int				next_char(struct te_buffer *buf);
-
+int 				move_right(struct te_buffer *buf);
+int 				move_left(struct te_buffer *buf);
 
 
 #endif

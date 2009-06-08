@@ -65,7 +65,7 @@ int line_length(bstring b, int point)
 
 	int c_offset = bstrchrp(b, '\n', point);
 	if (c_offset == BSTR_ERR)
-		c_offset = 0;
+		c_offset = blength(b);
 
 	int p_offset = bstrrchrp(b, '\n', c_offset - 1);
 	if (p_offset == BSTR_ERR)
@@ -93,10 +93,37 @@ int screen_line_length(bstring b, int point)
 			count += 1;
 	}
 
-	return count;
 }
 
+/*
+  accessor and mutators for the contents of the buffer.
+
+ */
 int prev_char(struct te_buffer *buf)
+{
+	if (buf == NULL)
+		return;
+
+	return bchar(buf->contents, buf->point - 1);
+}
+
+int curr_char(struct te_buffer *buf)
+{
+	if (buf == NULL)
+		return;
+
+	return bchar(buf->contents, buf->point);
+}
+
+int next_char(struct te_buffer *buf)
+{
+	if (buf == NULL)
+		return;
+
+	return bchar(buf->contents, buf->point + 1);
+}
+
+int move_left(struct te_buffer *buf)
 {
 	if (buf == NULL)
 		return;
@@ -109,7 +136,8 @@ int prev_char(struct te_buffer *buf)
 	return OK;
 }
 
-int next_char(struct te_buffer *buf)
+
+int move_right(struct te_buffer *buf)
 {
 	if (buf == NULL)
 		return;

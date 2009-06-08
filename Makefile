@@ -1,7 +1,7 @@
 CC=gcc
-CFLAGS=-c -g
-LDFLAGS=-lcurses
-OBJS=main.o errors.o screen.o buffer.o keyb.o bstrlib.o
+CFLAGS=-c -g `python2.5-config --includes`
+LDFLAGS=-lcurses `python2.5-config --ldflags`
+OBJS=main.o errors.o screen.o buffer.o keyb.o bstrlib.o python-bindings.o
 
 te: $(OBJS)
 	$(CC) $(LDFLAGS) -o te $(OBJS)
@@ -23,6 +23,9 @@ keyb.o: keyb.c
 
 bstrlib.o: bstrlib.c
 	$(CC) $(CFLAGS) bstrlib.c
+
+python-bindings.o: python-bindings.c python-bindings.h
+	$(CC) $(CFLAGS) python-bindings.c
 
 clean: $(OBJS)
 	rm $(OBJS)

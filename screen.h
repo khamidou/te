@@ -18,10 +18,10 @@ void paint_buffer(struct te_buffer *buf);
 
 void scroll_up(struct te_buffer *buf);
 void scroll_down(struct te_buffer *buf);
-void move_left(struct te_buffer *buf);
-void move_right(struct te_buffer *buf);
-void move_up(struct te_buffer *buf);
-void move_down(struct te_buffer *buf);
+void screen_move_left(struct te_buffer *buf);
+void screen_move_right(struct te_buffer *buf);
+void screen_move_up(struct te_buffer *buf);
+void screen_move_down(struct te_buffer *buf);
 
 void statusprintf(char *fmt, ...);
 void miniprintf(char *fmt, ...);

@@ -3,7 +3,7 @@
 void input_loop(void)
 {
 	while(1) {
-		char c = getch();
+		int c = getch();
 		
 		switch(c) {
 		case 'q':
@@ -11,16 +11,27 @@ void input_loop(void)
 
 		case 'k':
 		case KEY_LEFT:
-			move_left(current_buf);
+			screen_move_left(current_buf);
 			break;
 
 		case 'l':
 		case KEY_RIGHT:
-			move_right(current_buf);
+			screen_move_right(current_buf);
+			break;
+
+		case 'd':
+		case KEY_DOWN:
+			screen_move_down(current_buf);
 			break;
 		}
 
 		refresh();
+
+		miniprintf("%c, line length: %d, y: %d, x%d", 
+			   (bchar(current_buf->contents, current_buf->point) == '\n') ? 'N' : bchar(current_buf->contents, current_buf->point), 
+			   screen_line_length(current_buf->contents, current_buf->point),
+			   current_buf->y, current_buf->x);
+
 	}
 
 }
