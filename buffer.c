@@ -39,12 +39,13 @@ void free_buffer(struct te_buffer *b)
 struct te_buffer* load_buffer(char *filename)
 {
 	FILE *fp = fopen(filename, "r");
-
+	
 	if (fp == NULL)
 		fail("Unable to open %s", filename);
 
 	struct te_buffer *b = alloc_and_insert_buffer();
 
+	b->name = strdup(filename);
 	b->contents = bfromcstr("");
 	if (b->contents == NULL)
 		fail("Unable to allocate memory for buffer contents");
@@ -148,6 +149,16 @@ int move_right(struct te_buffer *buf)
 		return ERR;
 
 	return OK;
+}
+
+void insert_char(struct te_buffer *buf, char c)
+{
+	if (buf == NULL)
+		return;
+
+	binsertch(buf->contents, buf->point, 1, c);
+
+	return;
 }
 
 
