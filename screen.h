@@ -15,6 +15,7 @@ void init_windows(void);
 void cleanup_windows(void);
 
 void paint_buffer(struct te_buffer *buf);
+void draw_line(bstring s, int y);
 
 void scroll_up(struct te_buffer *buf);
 void scroll_down(struct te_buffer *buf);

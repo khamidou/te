@@ -4,6 +4,7 @@
 #include "zalloc.h"
 #include "error.h"
 #include "buffer.h"
+#include "util.h"
 
 void init_buffers(void)
 {
@@ -64,15 +65,29 @@ int line_length(bstring b, int point)
 	if (b == NULL)
 		return -1;
 
-	int c_offset = bstrchrp(b, '\n', point);
-	if (c_offset == BSTR_ERR)
-		c_offset = blength(b);
+	int s_offset = bstrrchrp(b, '\n', point - 1);
+	if (s_offset == BSTR_ERR)
+		s_offset = 0;
 
-	int p_offset = bstrrchrp(b, '\n', c_offset - 1);
-	if (p_offset == BSTR_ERR)
-		p_offset = 0;
+	int e_offset = bstrchrp(b, '\n', point);
+	if (e_offset == BSTR_ERR)
+		e_offset = blength(b);
 
-	return c_offset - p_offset;
+
+	return e_offset - s_offset;
+}
+
+bstring current_line_as_bstring(bstring b, int point)
+{
+	int s_offset = bstrrchrp(b, '\n', point - 1);
+	if (s_offset == BSTR_ERR)
+		s_offset = 0;
+
+	int e_offset = bstrchrp(b, '\n', point);
+	if (e_offset == BSTR_ERR)
+		e_offset = blength(b);
+
+	return bmidstr(b, s_offset, e_offset - s_offset);
 }
 
 /*
@@ -100,6 +115,7 @@ int screen_line_length(bstring b, int point)
   accessor and mutators for the contents of the buffer.
 
  */
+
 int prev_char(struct te_buffer *buf)
 {
 	if (buf == NULL)
@@ -129,8 +145,11 @@ int move_left(struct te_buffer *buf)
 	if (buf == NULL)
 		return;
 
-	if (buf->point > 0)
+	if (buf->point > 0) {
 		buf->point--;
+		if (bchar(buf->contents, buf->point) == '\n')
+			decrement_or_nullify(buf->lineno);
+	}
 	else
 		return ERR;
 
@@ -143,12 +162,36 @@ int move_right(struct te_buffer *buf)
 	if (buf == NULL)
 		return;
 
-	if (buf->point < blength(buf->contents))
+	if (buf->point < blength(buf->contents)) {
 		buf->point++;
+		if (bchar(buf->contents, buf->point) == '\n')
+			buf->lineno++;
+	}
 	else
 		return ERR;
 
 	return OK;
+}
+
+void move_to_prev_line(struct te_buffer *buf)
+{
+	if (buf == NULL)
+		return;
+
+	while(curr_char(buf) != '\n')
+		move_left(buf);
+
+}
+
+void move_to_next_line(struct te_buffer *buf)
+{
+	if (buf == NULL)
+		return;
+
+	while(curr_char(buf) != '\n')
+		move_right(buf);
+
+	move_right(buf);
 }
 
 void insert_char(struct te_buffer *buf, char c)

@@ -23,8 +23,13 @@ void input_loop(void)
 		case KEY_DOWN:
 			screen_move_down(current_buf);
 			break;
+			
+		case 'v':
+			screen_insert_char(current_buf, 'X');
+			paint_buffer(current_buf);
+			break;
 		}
-
+		
 		refresh();
 
 		miniprintf("%c, line length: %d, y: %d, x%d", 

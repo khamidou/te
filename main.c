@@ -15,7 +15,7 @@ int main(int argc, char **argv)
 	init_buffers();
 	init_windows();
 
-	current_buf = load_buffer("README");
+	current_buf = load_buffer("main.c");
 	paint_buffer(current_buf);
 	refresh();
 	input_loop();

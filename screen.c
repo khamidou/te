@@ -1,5 +1,8 @@
 #include "screen.h"
 
+static int y, x;
+
+
 void init_windows(void)
 {
 	initscr();
@@ -34,16 +37,32 @@ void paint_buffer(struct te_buffer *buf)
 
 	wmove(buffer_win, 0, 0);
 
-	char c;
+	bstring s;
 	int i = 0;
+	int pos = 0;
 
-	for(i = 0; i < (LINES - 3) * COLS; i++) 
-		waddch(buffer_win, bchar(buf->contents, i));
+	for(i = 0; i < (LINES - 3); i++) {
+		s = current_line_as_bstring(buf->contents, pos);
+		draw_line(s, i);
+		pos += line_length(s, pos);
+	}
 	
 	wmove(buffer_win, 0, 0);
 	refresh();
 }
 
+void draw_line(bstring s, int y)
+{
+	int i;
+	int j;
+	/* FIXME : wrap line if we go beyond COLS */
+	for (i = 0; i < blength(s); i++)
+		if (bchar(s, i) == '\t')
+			for (j = 0; j < TAB_LEN; j++)
+				mvwaddch(buffer_win, y, i, ' ');
+		else
+			mvwaddch(buffer_win, y, i, bchar(s, i));
+}
 
 void scroll_up(struct te_buffer *buf)
 {
@@ -153,7 +172,8 @@ void screen_move_down(struct te_buffer *buf)
 	} while(curr_char(buf) != '\n');
 
 	screen_next_line(buf);
-
+	
+	/* mimic emacs' behaviour of moving the user to the exact offset we were on */
 	for(count = 0; count < line_len && curr_char(buf) != '\n'; count++) {
 		move_right(buf);
 		screen_move_right(buf);
@@ -162,8 +182,28 @@ void screen_move_down(struct te_buffer *buf)
 	return;
 }
 
+void screen_insert_char(struct te_buffer *buf, char c)
+{
+	if (buf == NULL)
+		return;
+
+	statusprintf("buf x : %d, y : %d", buf->x, buf->y);
+	insert_char(buf, c);
+	
+	bstring s = current_line_as_bstring(buf->contents, buf->point);
+	draw_line(s, buf->y);
+
+	
+}
+
+/*
+  display a message in the status bar.
+ */
 void statusprintf(char *fmt, ...)
 {
+	
+	getyx(stdscr, y, x);
+
 	werase(status_win);
 	wmove(status_win, 0, 0);
 
@@ -184,11 +224,15 @@ void statusprintf(char *fmt, ...)
 	}
 
 	wrefresh(status_win);
+	
+	move(y, x);
 }
 
 
 void miniprintf(char *fmt, ...)
 {
+	getyx(stdscr, y, x);
+
 	va_list ap;
 	va_start(ap, fmt);
 	werase(minibuffer_win);
@@ -196,6 +240,8 @@ void miniprintf(char *fmt, ...)
 	va_end(ap);
 
 	wrefresh(minibuffer_win);
+
+	move(y, x);
 }
 
 void console_signal_handler(int sig)
@@ -208,3 +254,4 @@ void console_signal_handler(int sig)
 
 	}
 }
+
