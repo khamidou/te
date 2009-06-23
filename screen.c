@@ -3,6 +3,9 @@
 static int y, x;
 
 
+#define saveyx() getyx(stdscr, y,x)
+#define restoreyx() move(y, x)
+
 void init_windows(void)
 {
 	initscr();
@@ -35,19 +38,23 @@ void paint_buffer(struct te_buffer *buf)
 	if (buf == NULL)
 		return;
 
+	saveyx();
 	wmove(buffer_win, 0, 0);
 
 	bstring s;
 	int i = 0;
-	int pos = 0;
+	int count = 0;
 
 	for(i = 0; i < (LINES - 3); i++) {
-		s = current_line_as_bstring(buf->contents, pos);
+		s = current_line_as_bstring(buf->contents, count);
 		draw_line(s, i);
-		pos += line_length(s, pos);
+		count += blength(s);
+
+		if (count >= blength(buf->contents))
+		    break;
 	}
 	
-	wmove(buffer_win, 0, 0);
+	restoreyx();
 	refresh();
 }
 
@@ -57,11 +64,13 @@ void draw_line(bstring s, int y)
 	int j;
 	/* FIXME : wrap line if we go beyond COLS */
 	for (i = 0; i < blength(s); i++)
-		if (bchar(s, i) == '\t')
-			for (j = 0; j < TAB_LEN; j++)
-				mvwaddch(buffer_win, y, i, ' ');
-		else
-			mvwaddch(buffer_win, y, i, bchar(s, i));
+		/* if (bchar(s, i) == '\t') */
+/* 			for (j = 0; j < TAB_LEN; j++) */
+/* 				mvwaddch(buffer_win, y, j, ' '); */
+/* 		else */
+//			mvwaddch(buffer_win, y, i, bchar(s, i));
+		waddch(buffer_win, bchar(s, i));
+
 }
 
 void scroll_up(struct te_buffer *buf)
@@ -93,6 +102,8 @@ void screen_next_line(struct te_buffer *buf)
 	buf->x = 0;
 	if (buf->y < LINES)
 		buf->y++;
+
+	/* FIXME: scroll the screen if possible */
 }
 
 void screen_move_left(struct te_buffer *buf)
@@ -191,6 +202,7 @@ void screen_insert_char(struct te_buffer *buf, char c)
 	insert_char(buf, c);
 	
 	bstring s = current_line_as_bstring(buf->contents, buf->point);
+	miniprintf("%s", bstr2cstr(s, '\0'));
 	draw_line(s, buf->y);
 
 	
@@ -202,7 +214,7 @@ void screen_insert_char(struct te_buffer *buf, char c)
 void statusprintf(char *fmt, ...)
 {
 	
-	getyx(stdscr, y, x);
+	saveyx();
 
 	werase(status_win);
 	wmove(status_win, 0, 0);
@@ -225,7 +237,8 @@ void statusprintf(char *fmt, ...)
 
 	wrefresh(status_win);
 	
-	move(y, x);
+	restoreyx();
+
 }
 
 
@@ -247,11 +260,10 @@ void miniprintf(char *fmt, ...)
 void console_signal_handler(int sig)
 {
 	switch(sig) {
-	case SIGWINCH:
-	default:
-		refresh();
-		break;
-
+		case SIGWINCH:
+		default:
+			refresh();
+			break;
 	}
 }
 

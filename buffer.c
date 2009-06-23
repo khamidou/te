@@ -79,7 +79,7 @@ int line_length(bstring b, int point)
 
 bstring current_line_as_bstring(bstring b, int point)
 {
-	int s_offset = bstrrchrp(b, '\n', point - 1);
+	int s_offset = bstrrchrp(b, '\n', max(point - 1, 0));
 	if (s_offset == BSTR_ERR)
 		s_offset = 0;
 
