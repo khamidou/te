@@ -23,15 +23,14 @@ void input_loop(void)
 			
 		default:
 			screen_insert_char(current_buf, c);
-			paint_buffer(current_buf);
 			refresh();
 			break;
 		}
 		
 		refresh();
 
-/* 		miniprintf("%c, line length: %d, y: %d, x%d",  */
-/* 			   (bchar(current_buf->contents, current_buf->point) == '\n') ? 'N' : bchar(current_buf->contents, current_buf->point),  */
+/* 		miniprintf("%c, line length: %d, y: %d, x%d", */
+/* 			   (bchar(current_buf->contents, current_buf->point) == '\n') ? 'N' : bchar(current_buf->contents, current_buf->point), */
 /* 			   screen_line_length(current_buf->contents, current_buf->point), */
 /* 			   current_buf->y, current_buf->x); */
 

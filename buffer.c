@@ -79,15 +79,18 @@ int line_length(bstring b, int point)
 
 bstring current_line_as_bstring(bstring b, int point)
 {
-	int s_offset = bstrrchrp(b, '\n', max(point - 1, 0));
+	int s_offset = bstrrchrp(b, '\n', max(point, 0));
 	if (s_offset == BSTR_ERR)
 		s_offset = 0;
 
-	int e_offset = bstrchrp(b, '\n', point);
+	int e_offset = bstrchrp(b, '\n', point + 1);
 	if (e_offset == BSTR_ERR)
 		e_offset = blength(b);
 
-	return bmidstr(b, s_offset, e_offset - s_offset);
+	if (s_offset > 0)
+		return bmidstr(b, s_offset + 1, e_offset - s_offset);
+	else 
+		return bmidstr(b, s_offset, e_offset - s_offset);
 }
 
 /*

@@ -1,10 +1,10 @@
 #include "screen.h"
 
-static int y, x;
+static int scr_y, scr_x;
 
 
-#define saveyx() getyx(stdscr, y,x)
-#define restoreyx() move(y, x)
+#define saveyx() getyx(stdscr, scr_y, scr_x)
+#define restoreyx() move(scr_y, scr_x)
 
 void init_windows(void)
 {
@@ -62,15 +62,19 @@ void draw_line(bstring s, int y)
 {
 	int i;
 	int j;
+	saveyx();
+	move(y, 0);
+	clrtoeol();
+
 	/* FIXME : wrap line if we go beyond COLS */
 	for (i = 0; i < blength(s); i++)
-		/* if (bchar(s, i) == '\t') */
+/* 		if (bchar(s, i) == '\t') */
 /* 			for (j = 0; j < TAB_LEN; j++) */
-/* 				mvwaddch(buffer_win, y, j, ' '); */
+/* 				mvwaddch(buffer_win, y, i++, ' '); */
 /* 		else */
-//			mvwaddch(buffer_win, y, i, bchar(s, i));
-		waddch(buffer_win, bchar(s, i));
+			mvwaddch(buffer_win, y, i, bchar(s, i));
 
+	restoreyx();
 }
 
 void scroll_up(struct te_buffer *buf)
@@ -198,13 +202,12 @@ void screen_insert_char(struct te_buffer *buf, char c)
 	if (buf == NULL)
 		return;
 
-	statusprintf("buf x : %d, y : %d", buf->x, buf->y);
 	insert_char(buf, c);
 	
 	bstring s = current_line_as_bstring(buf->contents, buf->point);
 	miniprintf("%s", bstr2cstr(s, '\0'));
 	draw_line(s, buf->y);
-
+	screen_move_right(buf);
 	
 }
 
@@ -244,7 +247,7 @@ void statusprintf(char *fmt, ...)
 
 void miniprintf(char *fmt, ...)
 {
-	getyx(stdscr, y, x);
+	saveyx();
 
 	va_list ap;
 	va_start(ap, fmt);
@@ -254,7 +257,7 @@ void miniprintf(char *fmt, ...)
 
 	wrefresh(minibuffer_win);
 
-	move(y, x);
+	restoreyx();
 }
 
 void console_signal_handler(int sig)
