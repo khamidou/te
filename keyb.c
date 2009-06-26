@@ -20,7 +20,11 @@ void input_loop(void)
 		case KEY_DOWN:
 			screen_move_down(current_buf);
 			break;
-			
+
+		case KEY_UP:
+			screen_move_up(current_buf);
+			break;
+
 		default:
 			screen_insert_char(current_buf, c);
 			refresh();
@@ -29,10 +33,10 @@ void input_loop(void)
 		
 		refresh();
 
-/* 		miniprintf("%c, line length: %d, y: %d, x%d", */
-/* 			   (bchar(current_buf->contents, current_buf->point) == '\n') ? 'N' : bchar(current_buf->contents, current_buf->point), */
-/* 			   screen_line_length(current_buf->contents, current_buf->point), */
-/* 			   current_buf->y, current_buf->x); */
+		miniprintf("%c, line length: %d, y: %d, x%d",
+			   (bchar(current_buf->contents, current_buf->point) == '\n') ? 'N' : bchar(current_buf->contents, current_buf->point),
+			   screen_line_length(current_buf->contents, current_buf->point),
+			   current_buf->y, current_buf->x);
 
 	}
 

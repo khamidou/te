@@ -7,7 +7,7 @@
 
 #include "buffer.h"
 #include "config.h"
-
+#include "util.h"
 
 WINDOW *buffer_win, *status_win, *minibuffer_win;
 

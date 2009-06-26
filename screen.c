@@ -1,4 +1,5 @@
 #include "screen.h"
+#include "util.h"
 
 static int scr_y, scr_x;
 
@@ -62,18 +63,21 @@ void draw_line(bstring s, int y)
 {
 	int i;
 	int j;
+	int screen_abs = 0;
 	saveyx();
 	move(y, 0);
 	clrtoeol();
 
 	/* FIXME : wrap line if we go beyond COLS */
-	for (i = 0; i < blength(s); i++)
-/* 		if (bchar(s, i) == '\t') */
-/* 			for (j = 0; j < TAB_LEN; j++) */
-/* 				mvwaddch(buffer_win, y, i++, ' '); */
-/* 		else */
-			mvwaddch(buffer_win, y, i, bchar(s, i));
-
+	for (i = 0; i < blength(s); i++) {
+		if (bchar(s, i) == '\t') {
+			for (j = 0; j < TAB_LEN; j++)
+				mvwaddch(buffer_win, y, screen_abs++, ' ');
+		} else {
+			mvwaddch(buffer_win, y, screen_abs, bchar(s, i));
+			screen_abs++;
+		}
+	}
 	restoreyx();
 }
 
@@ -167,7 +171,37 @@ void screen_move_up(struct te_buffer *buf)
 	if (buf == NULL)
 		return;
 
+	int	i = 0;
+	int	old_x = buf->x;
+	int curr_y;
+	int curr_x = 0;
+
+	/* move until the last character of the previous line (before the '\n')
+	 * unless we're already there.
+	 */
+	if (curr_char(buf) == '\n' && prev_char(buf) == '\n') {
+		/* special case for a blank line */
+		move_left(buf);
+		move_left(buf);
+	} else {
+		do {
+			if(move_left(buf) == ERR)
+				break;
+
+		} while(next_char(buf) != '\n');
+	}
+
+	screen_prev_line(buf);
 	
+	/* mimic emacs' behaviour of moving the user to the exact offset we were on */
+
+		
+	while(buf->x > old_x && prev_char(buf) != '\n') {
+		screen_move_left(buf);
+	}
+
+	move(buf->y, buf->x);
+	return;
 }
 
 void screen_move_down(struct te_buffer *buf)
@@ -175,25 +209,28 @@ void screen_move_down(struct te_buffer *buf)
 	if (buf == NULL)
 		return;
 
-	int 	line_len  = line_length(buf->contents, buf->point);
-	int	sline_len = screen_line_length(buf->contents, buf->point);
-	int 	count = 0;
+	int	i = 0;
+	int	old_x = buf->x;
+	int curr_y;
+	int curr_x = 0;
 
 	do {
-		/* move until the end of line */
+		/* move until the first char of the next line */
 		if(move_right(buf) == ERR)
 			break;
 
-	} while(curr_char(buf) != '\n');
+	} while(prev_char(buf) != '\n');
 
 	screen_next_line(buf);
-	
+
 	/* mimic emacs' behaviour of moving the user to the exact offset we were on */
-	for(count = 0; count < line_len && curr_char(buf) != '\n'; count++) {
-		move_right(buf);
+
+	while(buf->x < old_x && curr_char(buf) != '\n') {
 		screen_move_right(buf);
+		statusprintf("curr_x : %d, old_x : %d", curr_x, old_x);
 	}
 
+	move(buf->y, buf->x);
 	return;
 }
 

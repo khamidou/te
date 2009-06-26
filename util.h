@@ -5,4 +5,6 @@
 #define increment_or_maximize(x, max) (x = (x > max) ? x + 1 : max)
 
 #define max(a, b) (a > b) ? a : b
+#define min(a, b) (a < b) ? a : b
+
 #endif

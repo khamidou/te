@@ -65,7 +65,7 @@ int line_length(bstring b, int point)
 	if (b == NULL)
 		return -1;
 
-	int s_offset = bstrrchrp(b, '\n', point - 1);
+	int s_offset = bstrrchrp(b, '\n', point -1);
 	if (s_offset == BSTR_ERR)
 		s_offset = 0;
 
@@ -74,23 +74,9 @@ int line_length(bstring b, int point)
 		e_offset = blength(b);
 
 
-	return e_offset - s_offset;
-}
-
-bstring current_line_as_bstring(bstring b, int point)
-{
-	int s_offset = bstrrchrp(b, '\n', max(point, 0));
-	if (s_offset == BSTR_ERR)
-		s_offset = 0;
-
-	int e_offset = bstrchrp(b, '\n', point + 1);
-	if (e_offset == BSTR_ERR)
-		e_offset = blength(b);
-
-	if (s_offset > 0)
-		return bmidstr(b, s_offset + 1, e_offset - s_offset);
-	else 
-		return bmidstr(b, s_offset, e_offset - s_offset);
+	return (e_offset - (s_offset + 1)); /* s_offset + 1 because the first '\n' is not a part
+					       of the line
+					    */
 }
 
 /*
@@ -112,6 +98,22 @@ int screen_line_length(bstring b, int point)
 			count += 1;
 	}
 
+}
+
+bstring current_line_as_bstring(bstring b, int point)
+{
+	int s_offset = bstrrchrp(b, '\n', max(point, 0));
+	if (s_offset == BSTR_ERR)
+		s_offset = 0;
+
+	int e_offset = bstrchrp(b, '\n', point + 1);
+	if (e_offset == BSTR_ERR)
+		e_offset = blength(b);
+
+	if (s_offset > 0)
+		return bmidstr(b, s_offset + 1, e_offset - s_offset);
+	else 
+		return bmidstr(b, s_offset, e_offset - s_offset);
 }
 
 /*
