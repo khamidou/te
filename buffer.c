@@ -87,17 +87,19 @@ int screen_line_length(bstring b, int point)
 	if (b == NULL)
 		return -1;
 
-	int len = line_length(b, point);
 	int i = 0;
 	int count = 0;
 
-	for (i = 0; i < len; i++) {
-		if (bchar(b, point - i) == '\t')
+	int s_offset = bstrrchrp(b, '\n', point - 1);
+
+	for (i = s_offset + 1; bchar(b, i) != '\n'; i++) {
+		if (bchar(b, i) == '\t')
 			count += TAB_LEN;
 		else
 			count += 1;
 	}
 
+	return count;
 }
 
 bstring current_line_as_bstring(bstring b, int point)

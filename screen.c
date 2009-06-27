@@ -124,6 +124,7 @@ void screen_move_left(struct te_buffer *buf)
 	
 	if (curr_char(buf) == '\n') {
 			screen_prev_line(buf);
+			buf->x = screen_line_length(buf->contents, buf->point);
 	} else { 
 		if (buf->x > 0)
 			if (curr_char(buf) == '\t') {
@@ -147,20 +148,18 @@ void screen_move_right(struct te_buffer *buf)
 	if (prev_char(buf) == '\n') {
 		screen_next_line(buf);
 	} else { 
-		if (buf->x <= screen_line_length(buf->contents, buf->point)) {
 		/* tab is the only character larger than 1 */
 			if (prev_char(buf) == '\t') {
 				buf->x += TAB_LEN;
 			} else {
 				buf->x++;
 			}
-		}
 
-		else { /* FIXME: scroll the screen instead of testing this
-			  condition
-		       */
-			screen_next_line(buf);
-		}
+/* 		else { /\* FIXME: scroll the screen instead of testing this */
+/* 			  condition */
+/* 		       *\/ */
+/* 			screen_next_line(buf); */
+/* 		} */
 	}
 
 	move(buf->y, buf->x);
@@ -173,31 +172,28 @@ void screen_move_up(struct te_buffer *buf)
 
 	int	i = 0;
 	int	old_x = buf->x;
-	int curr_y;
-	int curr_x = 0;
 
-	/* move until the last character of the previous line (before the '\n')
-	 * unless we're already there.
-	 */
-	if (curr_char(buf) == '\n' && prev_char(buf) == '\n') {
-		/* special case for a blank line */
-		move_left(buf);
-		move_left(buf);
-	} else {
-		do {
-			if(move_left(buf) == ERR)
-				break;
+	/* move until the first character of the line */
+	do {
+		if(move_left(buf) == ERR)
+			break;
+		
+	} while(prev_char(buf) != '\n');
 
-		} while(next_char(buf) != '\n');
-	}
+	/* then, move to the beginning of the previous line */
+	do {
+		if(move_left(buf) == ERR)
+			break;
+		
+	} while(prev_char(buf) != '\n');
 
 	screen_prev_line(buf);
-	
-	/* mimic emacs' behaviour of moving the user to the exact offset we were on */
+	buf->x = 0;
 
+	/* mimic emacs' behaviour of moving the user to the exact offset we were on */
 		
-	while(buf->x > old_x && prev_char(buf) != '\n') {
-		screen_move_left(buf);
+	while(buf->x < old_x && next_char(buf) != '\n') {
+		screen_move_right(buf);
 	}
 
 	move(buf->y, buf->x);
@@ -211,8 +207,6 @@ void screen_move_down(struct te_buffer *buf)
 
 	int	i = 0;
 	int	old_x = buf->x;
-	int curr_y;
-	int curr_x = 0;
 
 	do {
 		/* move until the first char of the next line */
@@ -227,7 +221,6 @@ void screen_move_down(struct te_buffer *buf)
 
 	while(buf->x < old_x && curr_char(buf) != '\n') {
 		screen_move_right(buf);
-		statusprintf("curr_x : %d, old_x : %d", curr_x, old_x);
 	}
 
 	move(buf->y, buf->x);
