@@ -25,6 +25,10 @@ void input_loop(void)
 			screen_move_up(current_buf);
 			break;
 
+		case 'u':
+			wscrl(buffer_win, -10);
+			touchwin(stdscr);
+			break;
 		default:
 			screen_insert_char(current_buf, c);
 			refresh();

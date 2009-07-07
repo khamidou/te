@@ -43,7 +43,7 @@ struct te_buffer* load_buffer(char *filename)
 	
 	if (fp == NULL)
 		fail("Unable to open %s", filename);
-
+	
 	struct te_buffer *b = alloc_and_insert_buffer();
 
 	b->name = strdup(filename);
@@ -90,7 +90,7 @@ int screen_line_length(bstring b, int point)
 	int i = 0;
 	int count = 0;
 
-	int s_offset = bstrrchrp(b, '\n', point - 1);
+	int s_offset = bstrrchrp(b, '\n', max(point - 1, 0));
 
 	for (i = s_offset + 1; bchar(b, i) != '\n'; i++) {
 		if (bchar(b, i) == '\t')
@@ -112,16 +112,16 @@ bstring current_line_as_bstring(bstring b, int point)
 	if (e_offset == BSTR_ERR)
 		e_offset = blength(b);
 
-	if (s_offset > 0)
-		return bmidstr(b, s_offset + 1, e_offset - s_offset);
-	else 
+	if (s_offset == 0) /* the first line of the file */
 		return bmidstr(b, s_offset, e_offset - s_offset);
+	else 
+		return bmidstr(b, s_offset + 1, e_offset - s_offset);
 }
 
 /*
-  accessor and mutators for the contents of the buffer.
+  accessors and mutators for the contents of the buffer.
 
- */
+*/
 
 int prev_char(struct te_buffer *buf)
 {
@@ -171,7 +171,7 @@ int move_right(struct te_buffer *buf)
 
 	if (buf->point < blength(buf->contents)) {
 		buf->point++;
-		if (bchar(buf->contents, buf->point) == '\n')
+		if (prev_char(buf) == '\n')
 			buf->lineno++;
 	}
 	else

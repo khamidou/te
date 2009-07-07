@@ -13,8 +13,9 @@ void init_windows(void)
 	cbreak();
 	noecho();
 	keypad(stdscr, TRUE);
+	scrollok(stdscr, FALSE);
 
-	buffer_win = subwin(stdscr, LINES - 2, COLS, 0, 0);
+	buffer_win = subwin(stdscr, LINES - 3, COLS, 0, 0);
 	idlok(stdscr, TRUE);
 	scrollok(buffer_win, FALSE);
 
@@ -46,7 +47,7 @@ void paint_buffer(struct te_buffer *buf)
 	int i = 0;
 	int count = 0;
 
-	for(i = 0; i < (LINES - 3); i++) {
+	for(i = 0; i < (LINES - 2); i++) {
 		s = current_line_as_bstring(buf->contents, count);
 		draw_line(s, i);
 		count += blength(s);
@@ -99,6 +100,15 @@ void screen_prev_line(struct te_buffer *buf)
 	if (buf->y > 0) {
 		buf->y--;
 		buf->x = screen_line_length(buf->contents, buf->point);
+	} else {
+		/* scroll up */
+		scrollok(buffer_win, TRUE);
+		wscrl(buffer_win, -1);
+		touchwin(stdscr); /* We have to use it to scroll the window. */
+		scrollok(buffer_win, FALSE);
+		bstring s = current_line_as_bstring(buf->contents, buf->point - 1);
+		draw_line(s, 0);
+		bdestroy(s);
 	}
 }
 
@@ -108,10 +118,17 @@ void screen_next_line(struct te_buffer *buf)
 		return;
 
 	buf->x = 0;
-	if (buf->y < LINES)
+	if (buf->y < LINES - 4)
 		buf->y++;
-
-	/* FIXME: scroll the screen if possible */
+	else {
+		scrollok(buffer_win, TRUE);
+		wscrl(buffer_win, 1);
+		touchwin(stdscr); /* We have to use it to scroll the window. */
+		scrollok(buffer_win, FALSE);
+		bstring s = current_line_as_bstring(buf->contents, buf->point - 1);
+		draw_line(s, LINES - 4);
+		bdestroy(s);
+	}
 }
 
 void screen_move_left(struct te_buffer *buf)
@@ -154,12 +171,6 @@ void screen_move_right(struct te_buffer *buf)
 			} else {
 				buf->x++;
 			}
-
-/* 		else { /\* FIXME: scroll the screen instead of testing this */
-/* 			  condition */
-/* 		       *\/ */
-/* 			screen_next_line(buf); */
-/* 		} */
 	}
 
 	move(buf->y, buf->x);
@@ -174,25 +185,26 @@ void screen_move_up(struct te_buffer *buf)
 	int	old_x = buf->x;
 
 	/* move until the first character of the line */
-	do {
+	while(prev_char(buf) != '\n') {
+
 		if(move_left(buf) == ERR)
 			break;
-		
-	} while(prev_char(buf) != '\n');
+	} 
+	move_left(buf);
 
 	/* then, move to the beginning of the previous line */
-	do {
+	while(prev_char(buf) != '\n') {
+
 		if(move_left(buf) == ERR)
 			break;
-		
-	} while(prev_char(buf) != '\n');
+	}
 
-	screen_prev_line(buf);
-	buf->x = 0;
+ 	screen_prev_line(buf);
+ 	buf->x = 0; 
 
 	/* mimic emacs' behaviour of moving the user to the exact offset we were on */
 		
-	while(buf->x < old_x && next_char(buf) != '\n') {
+	while(buf->x < old_x && next_char(buf) != '\n' && curr_char(buf) != '\n') {
 		screen_move_right(buf);
 	}
 
@@ -210,16 +222,15 @@ void screen_move_down(struct te_buffer *buf)
 
 	do {
 		/* move until the first char of the next line */
-		if(move_right(buf) == ERR)
+		if (move_right(buf) == ERR)
 			break;
 
-	} while(prev_char(buf) != '\n');
+	} while (prev_char(buf) != '\n');
 
 	screen_next_line(buf);
 
 	/* mimic emacs' behaviour of moving the user to the exact offset we were on */
-
-	while(buf->x < old_x && curr_char(buf) != '\n') {
+	while (buf->x < old_x && curr_char(buf) != '\n') {
 		screen_move_right(buf);
 	}
 
@@ -235,7 +246,6 @@ void screen_insert_char(struct te_buffer *buf, char c)
 	insert_char(buf, c);
 	
 	bstring s = current_line_as_bstring(buf->contents, buf->point);
-	miniprintf("%s", bstr2cstr(s, '\0'));
 	draw_line(s, buf->y);
 	screen_move_right(buf);
 	
