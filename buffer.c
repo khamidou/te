@@ -207,8 +207,32 @@ void insert_char(struct te_buffer *buf, char c)
 		return;
 
 	binsertch(buf->contents, buf->point, 1, c);
-
 	return;
 }
 
+void delete_char(struct te_buffer *buf)
+{
+	if (buf == NULL)
+		return;
+
+	bdelete(buf->contents, buf->point, 1);
+	move_left(buf);
+	return;
+}
+
+void write_buffer(struct te_buffer *buf)
+{
+	if (buf == NULL)
+		return;
+
+	char *c = bstr2cstr(buf->contents, '\0');
+	FILE *fp = fopen(buf->name, "w+");
+
+	if (fp == NULL)
+		notifyprintf("Unable to open %s", buf->name);
+
+	fwrite(c, strlen(c), sizeof(char), fp);
+
+	free(c);
+}
 

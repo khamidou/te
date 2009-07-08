@@ -251,6 +251,19 @@ void screen_insert_char(struct te_buffer *buf, char c)
 	
 }
 
+void screen_delete_char(struct te_buffer *buf)
+{
+	if (buf == NULL)
+		return;
+
+	delete_char(buf);
+	
+	bstring s = current_line_as_bstring(buf->contents, buf->point);
+	draw_line(s, buf->y);
+	screen_move_left(buf);
+	move_right(buf); /* yes it's ugly but I don't feel like recoding screen_move_right atm */
+}
+
 /*
   display a message in the status bar.
  */
@@ -299,6 +312,21 @@ void miniprintf(char *fmt, ...)
 
 	restoreyx();
 }
+
+/*
+  notifyprintf : display a message in the minibuffer and wait that the user
+  		 presses a key.
+ */
+void notifyprintf(char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	miniprintf(fmt, ap);
+	va_end(ap);
+
+	getch(); /* discard input */
+}
+
 
 void console_signal_handler(int sig)
 {
