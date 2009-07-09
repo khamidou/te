@@ -1,7 +1,7 @@
 CC=gcc
-CFLAGS=-c -g
-LDFLAGS=-lcurses
-OBJS=main.o errors.o screen.o buffer.o keyb.o bstrlib.o
+CFLAGS=-c -g `lua-config --include`
+LDFLAGS=-lcurses `lua-config --libs`
+OBJS=main.o errors.o screen.o buffer.o keyb.o bstrlib.o lua-api.o
 
 te: $(OBJS)
 	$(CC) $(LDFLAGS) -o te $(OBJS)
@@ -23,6 +23,9 @@ keyb.o: keyb.c
 
 bstrlib.o: bstrlib.c
 	$(CC) $(CFLAGS) bstrlib.c
+
+lua-api.o: lua-api.c
+	$(CC) $(CFLAGS) lua-api.c
 
 clean: 
 	rm $(OBJS)

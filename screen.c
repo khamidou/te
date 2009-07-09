@@ -131,13 +131,13 @@ void screen_next_line(struct te_buffer *buf)
 	}
 }
 
-void screen_move_left(struct te_buffer *buf)
+int screen_move_left(struct te_buffer *buf)
 {
 	if (buf == NULL)
-		return;
+		return ERR;
 
 	if(move_left(buf) == ERR)
-		return;
+		return ERR;
 	
 	if (curr_char(buf) == '\n') {
 			screen_prev_line(buf);
@@ -152,15 +152,16 @@ void screen_move_left(struct te_buffer *buf)
 	}
 
 	move(buf->y, buf->x);
+	return OK;
 }
 
-void screen_move_right(struct te_buffer *buf)
+int screen_move_right(struct te_buffer *buf)
 {
 	if (buf == NULL)
-		return;
+		return ERR;
 
 	if (move_right(buf) == ERR) /* last char of the document */
-		return;
+		return ERR;
 
 	if (prev_char(buf) == '\n') {
 		screen_next_line(buf);
@@ -174,6 +175,7 @@ void screen_move_right(struct te_buffer *buf)
 	}
 
 	move(buf->y, buf->x);
+	return OK;
 }
 
 void screen_move_up(struct te_buffer *buf)
@@ -186,7 +188,6 @@ void screen_move_up(struct te_buffer *buf)
 
 	/* move until the first character of the line */
 	while(prev_char(buf) != '\n') {
-
 		if(move_left(buf) == ERR)
 			break;
 	} 
@@ -194,7 +195,6 @@ void screen_move_up(struct te_buffer *buf)
 
 	/* then, move to the beginning of the previous line */
 	while(prev_char(buf) != '\n') {
-
 		if(move_left(buf) == ERR)
 			break;
 	}
@@ -205,7 +205,8 @@ void screen_move_up(struct te_buffer *buf)
 	/* mimic emacs' behaviour of moving the user to the exact offset we were on */
 		
 	while(buf->x < old_x && next_char(buf) != '\n' && curr_char(buf) != '\n') {
-		screen_move_right(buf);
+		if (screen_move_right(buf) == ERR)
+			break;
 	}
 
 	move(buf->y, buf->x);
@@ -216,6 +217,9 @@ void screen_move_down(struct te_buffer *buf)
 {
 	if (buf == NULL)
 		return;
+
+	if (buf->point == blength(buf->contents))
+	    return;
 
 	int	i = 0;
 	int	old_x = buf->x;
@@ -231,7 +235,8 @@ void screen_move_down(struct te_buffer *buf)
 
 	/* mimic emacs' behaviour of moving the user to the exact offset we were on */
 	while (buf->x < old_x && curr_char(buf) != '\n') {
-		screen_move_right(buf);
+		if(screen_move_right(buf) == ERR)
+			return;
 	}
 
 	move(buf->y, buf->x);

@@ -92,7 +92,7 @@ int screen_line_length(bstring b, int point)
 
 	int s_offset = bstrrchrp(b, '\n', max(point - 1, 0));
 
-	for (i = s_offset + 1; bchar(b, i) != '\n'; i++) {
+	for (i = s_offset + 1; bchar(b, i) != '\n' && i < blength(b); i++) {
 		if (bchar(b, i) == '\t')
 			count += TAB_LEN;
 		else

@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 	init_buffers();
 	init_windows();
 
-	current_buf = load_buffer("buffer.c");
+	current_buf = load_buffer("README");
 	paint_buffer(current_buf);
 	refresh();
 	input_loop();

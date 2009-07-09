@@ -29,9 +29,8 @@ void input_loop(void)
 			screen_delete_char(current_buf);
 			break;
 
-		case 'u':
-			wscrl(buffer_win, -10);
-			touchwin(stdscr);
+		case 'w':
+			write_buffer(current_buf);
 			break;
 		default:
 			screen_insert_char(current_buf, c);
