@@ -27,6 +27,7 @@ void screen_move_down(struct te_buffer *buf);
 void statusprintf(char *fmt, ...);
 void miniprintf(char *fmt, ...);
 void notifyprintf(char *fmt, ...);
+char *read_user_input(void);
 
 void console_signal_handler(int sig);
 

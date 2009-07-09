@@ -1,3 +1,4 @@
+#include "zalloc.h"
 #include "screen.h"
 #include "util.h"
 
@@ -269,6 +270,11 @@ void screen_delete_char(struct te_buffer *buf)
 	move_right(buf); /* yes it's ugly but I don't feel like recoding screen_move_right atm */
 }
 
+void screen_switch_buffer(struct te_buffer *buf)
+{
+	
+}
+
 /*
   display a message in the status bar.
  */
@@ -332,6 +338,26 @@ void notifyprintf(char *fmt, ...)
 	getch(); /* discard input */
 }
 
+char *read_user_input(void)
+{
+	char *s = zalloc(255);
+	int c = 0;
+	int i = 0;
+
+	for (i = 0; i < 255 && c != KEY_ENTER; i++) {
+		c = getch();
+		waddch(minibuffer_win, c);
+		*(s + i) = c;
+	}
+
+	if ((void *) c == NULL)
+		fail("Unable to allocate memory at __FILE__:__LINE__\n");
+
+	if (getnstr(c, 255) == ERR)
+		return (char *) ERR;
+
+	return (char *) c;
+}
 
 void console_signal_handler(int sig)
 {

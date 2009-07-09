@@ -6,6 +6,8 @@
 #include "screen.h"
 
 void input_loop(void);
+void process_command(int c); /* process a command */
+void process_input(int c);   /* process a normal char - that is, not a command */
 
 struct te_buffer *current_buf;
 
