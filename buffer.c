@@ -38,6 +38,15 @@ void free_buffer(struct te_buffer *b)
 	free(b);
 }
 
+void free_all_buffers(void)
+{
+	struct te_buffer *b;
+	TAILQ_FOREACH(b, &buffers_head, buffers) {
+		free_buffer(b);
+	}
+
+}
+
 struct te_buffer* search_buffer(char *name)
 {
 	if (name == NULL)

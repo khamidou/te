@@ -21,7 +21,8 @@ TAILQ_HEAD(te_buffers_head, te_buffer) buffers_head;
 
 struct	te_buffer 		*alloc_and_insert_buffer(void);
 void				free_buffer(struct te_buffer *b);
-struct te_buffer* search_buffer(char *name);
+void 				free_all_buffers(void);
+struct te_buffer* 		search_buffer(char *name);
 struct te_buffer* 		load_buffer(char *filename);
 
 void 				init_buffers(void);

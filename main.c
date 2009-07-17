@@ -4,8 +4,10 @@
 
 #include <stdio.h>
 #include <curses.h>
-#include "interp.h"
+//#include "interp.h"
 #include "screen.h"
+
+void init_interp(void);
 
 extern struct te_buffer *current_buf;
 
@@ -15,7 +17,10 @@ int main(int argc, char **argv)
 	init_interp();
 	init_windows();
 
-	current_buf = load_buffer("tests/bufferfuncs.c");
+	if (argc != 1)
+		current_buf = load_buffer(argv[1]);
+	else 
+		current_buf = load_buffer("tests/bufferfuncs.c");
 
 	paint_buffer(current_buf);
 	refresh();
