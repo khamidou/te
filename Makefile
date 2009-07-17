@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-c -g
-LDFLAGS=-lcurses -lslang
+CFLAGS=-c -g `python2.5-config --includes`
+LDFLAGS=-lcurses `python2.5-config --libs`
 OBJS=main.o errors.o screen.o buffer.o keyb.o interp.o bstrlib.o
 
 te: $(OBJS)

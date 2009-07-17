@@ -2,6 +2,7 @@
 #define __BUFFER_H__
 
 #include <stdio.h>
+#include <Python.h>
 #include "bstrlib.h"
 #include "queue.h"
 #include "config.h"
@@ -14,6 +15,7 @@ struct te_buffer {
 	bstring contents;
 	int point;		/* offset in "contents" */
 	int top_char; /* the position of the char at the top of the screen */
+	PyObject *pyBuffer; /* pointer to hte python object representing this buffer */
 	TAILQ_ENTRY(te_buffer) buffers;
 };
 
