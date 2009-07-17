@@ -23,6 +23,7 @@ struct te_buffer *alloc_and_insert_buffer(void)
 	b->x = 0;
 	b->y = 0;
 	b->point = 0;
+	b->top_char = 0;
 
 	return b;
 }
@@ -35,6 +36,18 @@ void free_buffer(struct te_buffer *b)
 	TAILQ_REMOVE(&buffers_head, b, buffers);
 
 	free(b);
+}
+
+struct te_buffer* search_buffer(char *name)
+{
+	if (name == NULL)
+		return;
+
+	struct te_buffer *b;
+	TAILQ_FOREACH(b, &buffers_head, buffers) {
+		if (strcmp(name, b->name) == 0)
+			return b;
+	}
 }
 
 struct te_buffer* load_buffer(char *filename)

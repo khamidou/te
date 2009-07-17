@@ -15,10 +15,10 @@ void input_loop(void)
 
 		refresh();
 
-/* 		miniprintf("%c, line length: %d, y: %d, x%d", */
-/* 			   (bchar(current_buf->contents, current_buf->point) == '\n') ? 'N' : bchar(current_buf->contents, current_buf->point), */
-/* 			   screen_line_length(current_buf->contents, current_buf->point), */
-/* 			   current_buf->y, current_buf->x); */
+		miniprintf("%c, line length: %d, y: %d, x%d",
+			   (bchar(current_buf->contents, current_buf->point) == '\n') ? 'N' : bchar(current_buf->contents, current_buf->point),
+			   screen_line_length(current_buf->contents, current_buf->point),
+			   current_buf->y, current_buf->x);
 
 	}
 
@@ -55,6 +55,10 @@ void process_command(int c)
 				write_buffer(current_buf);
 				break;
 
+			case 'x':
+				screen_delete_char(current_buf);
+				break;
+
 			case 'i':
 			case KEY_END:
 				/* switch between command and input mode */
@@ -62,10 +66,8 @@ void process_command(int c)
 				break;
 
 			case 'v':
-				str = read_user_input();
-				miniprintf("you entered : %s", str);
-				break;
 
+			case 'b':
 			default:
 				miniprintf("%c - invalid command", c);
 				break;
@@ -75,6 +77,10 @@ void process_command(int c)
 void process_input(int c)
 {
 			switch(c) {
+			case KEY_ENTER:
+				screen_insert_char(current_buf, '\n');
+				break;
+
 			case KEY_BACKSPACE:
 				screen_delete_char(current_buf);
 				break;

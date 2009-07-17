@@ -10,5 +10,7 @@ void process_command(int c); /* process a command */
 void process_input(int c);   /* process a normal char - that is, not a command */
 
 struct te_buffer *current_buf;
+struct te_buffer *buf1;
+struct te_buffer *buf2;
 
 #endif

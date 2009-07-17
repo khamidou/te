@@ -1,6 +1,7 @@
 #include "zalloc.h"
 #include "screen.h"
 #include "util.h"
+#include "keyb.h"
 
 static int scr_y, scr_x;
 
@@ -38,6 +39,12 @@ void cleanup_windows(void)
 
 void paint_buffer(struct te_buffer *buf)
 {
+	paint_buffer_nlines(buf, LINES - 2);
+}
+
+/* paint the first nlines of a buffer */
+void paint_buffer_nlines(struct te_buffer *buf, int nlines)
+{
 	if (buf == NULL)
 		return;
 
@@ -46,9 +53,9 @@ void paint_buffer(struct te_buffer *buf)
 
 	bstring s;
 	int i = 0;
-	int count = 0;
+	int count = buf->top_char;
 
-	for(i = 0; i < (LINES - 2); i++) {
+	for(i = 0; i < nlines; i++) {
 		s = current_line_as_bstring(buf->contents, count);
 		draw_line(s, i);
 		count += blength(s);
@@ -59,6 +66,45 @@ void paint_buffer(struct te_buffer *buf)
 	
 	restoreyx();
 	refresh();
+
+}
+
+void paint_nthline(struct te_buffer *buf, int n, int y)
+{
+	if (buf == NULL)
+		return;
+
+	saveyx();
+	wmove(buffer_win, 0, 0);
+
+	bstring s;
+	int i = 0;
+	int count = buf->top_char;
+
+	for(i = 0; i < n; i++) {
+		s = current_line_as_bstring(buf->contents, count);
+		count += blength(s);
+
+		if (count >= blength(buf->contents))
+		    break;
+	}
+
+	draw_line(s, y);
+
+	restoreyx();
+}
+
+void clear_nfirst_lines(WINDOW *w, int n)
+{
+	int i = 0;
+	saveyx();
+
+	for (i = 0; i < n; i++) {
+		wmove(w, i, 0);
+		wclrtoeol(w);
+	}
+
+	restoreyx();
 }
 
 void draw_line(bstring s, int y)
@@ -75,7 +121,12 @@ void draw_line(bstring s, int y)
 		if (bchar(s, i) == '\t') {
 			for (j = 0; j < TAB_LEN; j++)
 				mvwaddch(buffer_win, y, screen_abs++, ' ');
-		} else {
+		}
+/* 		else if (bchar(s, i) == '\n') { */
+/* 				mvwaddstr(buffer_win, y, screen_abs++, "\\n"); */
+/* 				screen_abs++; */
+/* 				mvwaddch(buffer_win, y, screen_abs++, '\n'); */
+/* 		} */ else {
 			mvwaddch(buffer_win, y, screen_abs, bchar(s, i));
 			screen_abs++;
 		}
@@ -83,14 +134,20 @@ void draw_line(bstring s, int y)
 	restoreyx();
 }
 
-void scroll_up(struct te_buffer *buf)
+void scroll_up(WINDOW *w)
 {
-
+	scrollok(w, TRUE);
+	wscrl(w, 1);
+	touchwin(stdscr); /* We have to use it to scroll the window. */
+	scrollok(w, FALSE);
 }
 
-void scroll_down(struct te_buffer *buf)
+void scroll_down(WINDOW *w)
 {
-
+	scrollok(w, TRUE);
+	wscrl(w, -1);
+	touchwin(stdscr); /* We have to use it to scroll the window. */
+	scrollok(w, FALSE);
 }
 
 void screen_prev_line(struct te_buffer *buf)
@@ -102,13 +159,19 @@ void screen_prev_line(struct te_buffer *buf)
 		buf->y--;
 		buf->x = screen_line_length(buf->contents, buf->point);
 	} else {
-		/* scroll up */
-		scrollok(buffer_win, TRUE);
-		wscrl(buffer_win, -1);
-		touchwin(stdscr); /* We have to use it to scroll the window. */
-		scrollok(buffer_win, FALSE);
+
+		if (bstrrchrp(buf->contents, '\n', buf->point) == BSTR_ERR) /* is it the first line of the file ? */
+			return;
+
+		scroll_down(buffer_win);
 		bstring s = current_line_as_bstring(buf->contents, buf->point - 1);
 		draw_line(s, 0);
+		bdestroy(s);
+
+		/* update buf->top_char */
+		s = current_line_as_bstring(buf->contents, buf->top_char);
+		buf->top_char -= blength(s);
+		buf->top_char = max(buf->top_char, 0);
 		bdestroy(s);
 	}
 }
@@ -122,12 +185,15 @@ void screen_next_line(struct te_buffer *buf)
 	if (buf->y < LINES - 4)
 		buf->y++;
 	else {
-		scrollok(buffer_win, TRUE);
-		wscrl(buffer_win, 1);
-		touchwin(stdscr); /* We have to use it to scroll the window. */
-		scrollok(buffer_win, FALSE);
+		scroll_up(buffer_win);
 		bstring s = current_line_as_bstring(buf->contents, buf->point - 1);
 		draw_line(s, LINES - 4);
+		bdestroy(s);
+
+		/* update buf->top_char */
+		s = current_line_as_bstring(buf->contents, buf->top_char);
+		buf->top_char += blength(s);
+		buf->top_char = max(buf->top_char, blength(buf->contents));
 		bdestroy(s);
 	}
 }
@@ -249,12 +315,23 @@ void screen_insert_char(struct te_buffer *buf, char c)
 	if (buf == NULL)
 		return;
 
+	if (buf->dirty < 1)
+		buf->dirty = 1;
+
 	insert_char(buf, c);
-	
-	bstring s = current_line_as_bstring(buf->contents, buf->point);
-	draw_line(s, buf->y);
-	screen_move_right(buf);
-	
+
+	if (c == '\n') {
+		clrtoeol();
+		clear_nfirst_lines(buffer_win, buf->y - 1);
+		scroll_down(buffer_win);
+		paint_buffer_nlines(buf, buf->y + 1);
+		paint_nthline(buf, buf->y + 2, buf->y + 1);
+		screen_move_right(buf);
+	} else {
+		bstring s = current_line_as_bstring(buf->contents, buf->point);
+		draw_line(s, buf->y);
+		screen_move_right(buf);
+	}
 }
 
 void screen_delete_char(struct te_buffer *buf)
@@ -262,17 +339,49 @@ void screen_delete_char(struct te_buffer *buf)
 	if (buf == NULL)
 		return;
 
+	move_left(buf);
+	bstring s = current_line_as_bstring(buf->contents, max(buf->point - 1, 0));
+	char c = curr_char(buf);
 	delete_char(buf);
-	
-	bstring s = current_line_as_bstring(buf->contents, buf->point);
-	draw_line(s, buf->y);
-	screen_move_left(buf);
-	move_right(buf); /* yes it's ugly but I don't feel like recoding screen_move_right atm */
+	move_right(buf);
+
+	if (buf->dirty < 1)
+		buf->dirty = 1;
+
+	if (c == '\n') {
+		bstring s2 = current_line_as_bstring(buf->contents, max(buf->point - blength(s), 0));
+		statusprintf("s : %s", bstr2cstr(s, '\0'));
+		clrtoeol();
+		clear_nfirst_lines(buffer_win, buf->y);
+		scroll_up(buffer_win);
+ 		paint_buffer_nlines(buf, buf->y + 1); 
+//		screen_prev_line(buf);
+		screen_prev_line(buf);
+		buf->x = screen_line_length(s, 0);
+		move(buf->y, buf->x);
+	} else {
+		bstring s = current_line_as_bstring(buf->contents, buf->point);
+		draw_line(s, buf->y);
+		screen_move_left(buf);
+		move_right(buf); /* yes it's ugly but I don't feel like recoding screen_move_right atm */
+	}
+
 }
 
 void screen_switch_buffer(struct te_buffer *buf)
 {
-	
+	if (buf == NULL)
+		return;
+
+	wclear(buffer_win);
+	wclear(status_win);
+	statusprintf("%s", buf->name);
+
+	paint_buffer(buf);
+	move(buf->y, buf->x);
+	current_buf = buf;
+
+	return;
 }
 
 /*
@@ -338,25 +447,28 @@ void notifyprintf(char *fmt, ...)
 	getch(); /* discard input */
 }
 
-char *read_user_input(void)
+char *ask_user(char *fmt, ...)
 {
+	va_list ap;
+	va_start(ap, fmt);
+	miniprintf(fmt, ap);
+	va_end(ap);
+
 	char *s = zalloc(255);
 	int c = 0;
 	int i = 0;
 
-	for (i = 0; i < 255 && c != KEY_ENTER; i++) {
-		c = getch();
-		waddch(minibuffer_win, c);
-		*(s + i) = c;
-	}
-
-	if ((void *) c == NULL)
+	if (s == NULL)
 		fail("Unable to allocate memory at __FILE__:__LINE__\n");
 
-	if (getnstr(c, 255) == ERR)
-		return (char *) ERR;
+	do {
+		c = wgetch(minibuffer_win);
+		wechochar(minibuffer_win, c);
+		s[i] = c;
+		i++;
+	} while (i < 255 && c != '\n');
 
-	return (char *) c;
+	return s;
 }
 
 void console_signal_handler(int sig)
