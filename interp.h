@@ -9,8 +9,24 @@ conventions : the declarations using mixed case always refer to elements of the 
 #include <Python.h>
 #include <structmember.h>
 #include "buffer.h"
+
+static 	PyObject *pName, *pModule, *pDict, *pFunc;
  
 void init_interp(void);
+
+PyObject *Te_notifyprintf(PyObject *self, PyObject *args);
+
+/* the methods of the te module */
+static PyMethodDef TeMethods[] = {
+// {"system", spam_system, METH_VARARGS,
+// "Execute a shell command."},
+	{"notifyprintf", Te_notifyprintf, METH_VARARGS, "Print a message in the minibuffer"},
+	{NULL, NULL, 0, NULL} /* Sentinel */
+};
+
+/*
+  Definition of the buffer object type.
+ */
  
 typedef struct {
   PyObject_HEAD
@@ -29,7 +45,8 @@ int Buffer_setpoint(TeBuffer *self, PyObject *value, void *closure);
  
 PyObject *Buffer_getcontents(TeBuffer *self, void *closure);
 int Buffer_setcontents(TeBuffer *self, PyObject *value, void *closure);
- 
+
+
 static PyMemberDef Buffer_members[] = {
 	{NULL} /* Sentinel */
 };
@@ -100,12 +117,6 @@ static PyTypeObject binding_BufferType = {
  
 };
  
-/* the methods of the te module */
-static PyMethodDef TeMethods[] = {
-// {"system", spam_system, METH_VARARGS,
-// "Execute a shell command."},
-	{NULL, NULL, 0, NULL} /* Sentinel */
-};
  
 PyMODINIT_FUNC init_python(void);
  

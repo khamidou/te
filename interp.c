@@ -15,7 +15,38 @@ PyMODINIT_FUNC init_python(void)
  
 	Py_INCREF(&binding_BufferType);
 	PyModule_AddObject(m, "Buffer", (PyObject *)&binding_BufferType);
- 
+	PySys_SetPath(".");
+	pName = PyString_FromString("te_test");
+
+	pModule = PyImport_Import(pName);
+
+	if (pModule == NULL) {
+		perror("Unable to open te_test.py !");
+		PyErr_Print();
+		getc(stdin);
+		exit(EXIT_FAILURE);
+	}
+
+	Py_DECREF(pName);
+}
+
+void terminate_python(void)
+{
+		Py_DECREF(pFunc);
+		Py_DECREF(pModule);
+
+}
+PyObject *Te_notifyprintf(PyObject *self, PyObject *args)
+{
+	const char *str;
+	int sts;
+
+	if (!PyArg_ParseTuple(args, "s", &str))
+		return NULL;
+
+	miniprintf("%s", str);
+	return Py_BuildValue("i", 0); /* miniprintf is always successful */
+
 }
  
 PyObject *Buffer_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -148,3 +179,4 @@ int Buffer_setcontents(TeBuffer *self, PyObject *value, void *closure)
  
 	self->buf->point = (int) PyInt_AsLong(value);
 }
+
