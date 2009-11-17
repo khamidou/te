@@ -15,7 +15,6 @@ int main(int argc, char **argv)
 {
 	init_buffers();
 	init_windows();
-	init_python();
 
 	if (argc != 1)
 		current_buf = load_buffer(argv[1]);
