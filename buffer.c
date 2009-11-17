@@ -26,7 +26,6 @@ struct te_buffer *alloc_and_insert_buffer(void)
 	b->point = 0;
 	b->top_char = 0;
 
-	init_python_buffer(b);
 	return b;
 }
 

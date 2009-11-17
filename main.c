@@ -25,7 +25,6 @@ int main(int argc, char **argv)
 	load_buffer("main.c");
 	
 	paint_buffer(current_buf);
-	run_python_script("te_test");
 	refresh();
 	input_loop();
 
