@@ -63,6 +63,7 @@ void process_command(int c)
 			case KEY_END:
 				/* switch between command and input mode */
 				command_mode = 0;
+				miniprintf("-- INPUT --");
 				break;
 
 			case 'v':
@@ -103,6 +104,7 @@ void process_input(int c)
 				
 			case KEY_END:
 				command_mode = 1;
+				miniprintf("-- COMMAND --");
 				break;
 
 			default:
