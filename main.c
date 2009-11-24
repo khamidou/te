@@ -15,6 +15,8 @@ extern struct te_buffer *current_buf;
 
 int main(int argc, char **argv)
 {
+
+	init_windows();
 	init_buffers();
 
 	if (argc > 1) 
@@ -22,8 +24,6 @@ int main(int argc, char **argv)
 			current_buf = load_buffer(*argv);
 	else 
 		cmdline_help();
-
-	init_windows();
 	paint_buffer(current_buf);
 	statusprintf("%s", current_buf->name);
 

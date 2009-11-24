@@ -3,6 +3,8 @@
 
 void fail(char *fmt, ...)
 {
+	endwin();
+
 	va_list ap;
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
