@@ -6,6 +6,7 @@ char *str;
 void input_loop(void)
 {
 	while(1) {
+
 		int c = getch();
 		
 		if (command_mode)

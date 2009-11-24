@@ -3,30 +3,37 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <curses.h>
 #include "interp.h"
 #include "screen.h"
 
 void init_interp(void);
+void cmdline_help(void);
 
 extern struct te_buffer *current_buf;
 
 int main(int argc, char **argv)
 {
 	init_buffers();
-	init_windows();
 
-	if (argc != 1)
-		current_buf = load_buffer(argv[1]);
+	if (argc > 1) 
+		for (argv++; *argv != NULL ; argv++) 
+			current_buf = load_buffer(*argv);
 	else 
-		current_buf = load_buffer("tests/bufferfuncs.c");
+		cmdline_help();
 
-	load_buffer("README");
-	load_buffer("main.c");
-	
+	init_windows();
 	paint_buffer(current_buf);
+	statusprintf("%s", current_buf->name);
+
 	refresh();
 	input_loop();
 
 }
 
+void cmdline_help(void)
+{
+	puts("te file1 file2");
+	exit(EXIT_SUCCESS);
+}

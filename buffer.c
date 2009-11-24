@@ -62,11 +62,7 @@ struct te_buffer* search_buffer(char *name)
 
 struct te_buffer* load_buffer(char *filename)
 {
-	FILE *fp = fopen(filename, "r");
-	
-	if (fp == NULL)
-		fail("Unable to open %s", filename);
-	
+
 	struct te_buffer *b = alloc_and_insert_buffer();
 
 	b->name = strdup(filename);
@@ -74,10 +70,16 @@ struct te_buffer* load_buffer(char *filename)
 	if (b->contents == NULL)
 		fail("Unable to allocate memory for buffer contents");
 
-	if (breada(b->contents, (bNread) &fread, fp) != 0)
-		fail("Unable to read file contents");
+	FILE *fp = fopen(filename, "r");
 	
-	statusprintf("%s", filename);
+	if (fp == NULL) {
+		miniprintf("Creating an empty buffer");
+	} else {
+		if (breada(b->contents, (bNread) &fread, fp) != 0)
+			fail("Unable to read file contents");
+
+		fclose(fp);
+	}
 
 	return b;
 }
@@ -256,6 +258,7 @@ void write_buffer(struct te_buffer *buf)
 
 	fwrite(c, strlen(c), sizeof(char), fp);
 
+	fclose(fp);
 	free(c);
 }
 

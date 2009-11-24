@@ -126,7 +126,11 @@ void draw_line(bstring s, int y)
 /* 				mvwaddstr(buffer_win, y, screen_abs++, "\\n"); */
 /* 				screen_abs++; */
 /* 				mvwaddch(buffer_win, y, screen_abs++, '\n'); */
-/* 		} */ else {
+		/* 		} */ 
+		else if (i == COLS - 1) {
+			mvwaddch(buffer_win, y, screen_abs, '\\');
+			screen_next_line(current_buf);
+		} else {
 			mvwaddch(buffer_win, y, screen_abs, bchar(s, i));
 			screen_abs++;
 		}
@@ -360,7 +364,7 @@ void screen_delete_char(struct te_buffer *buf)
 		buf->x = screen_line_length(s, 0);
 		move(buf->y, buf->x);
 	} else {
-		bstring s = current_line_as_bstring(buf->contents, buf->point);
+		bstring s = current_line_as_bstring(buf->contents, buf->point - 1);
 		draw_line(s, buf->y);
 		screen_move_left(buf);
 		move_right(buf); /* yes it's ugly but I don't feel like recoding screen_move_right atm */
@@ -412,7 +416,6 @@ void statusprintf(char *fmt, ...)
 	}
 
 	wrefresh(status_win);
-	
 	restoreyx();
 
 }
