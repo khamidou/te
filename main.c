@@ -16,14 +16,17 @@ extern struct te_buffer *current_buf;
 int main(int argc, char **argv)
 {
 
+
+	if (argc <= 1) 
+		cmdline_help();
+
 	init_windows();
 	init_buffers();
 
-	if (argc > 1) 
-		for (argv++; *argv != NULL ; argv++) 
-			current_buf = load_buffer(*argv);
-	else 
-		cmdline_help();
+	for (argv++; *argv != NULL ; argv++) 
+		current_buf = load_buffer(*argv);
+		
+
 	paint_buffer(current_buf);
 	statusprintf("%s", current_buf->name);
 

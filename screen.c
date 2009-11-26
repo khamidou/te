@@ -60,6 +60,7 @@ void paint_buffer_nlines(struct te_buffer *buf, int nlines)
 		draw_line(s, i);
 		count += blength(s);
 
+		bdestroy(s);
 		if (count >= blength(buf->contents))
 		    break;
 	}
