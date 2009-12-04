@@ -53,19 +53,18 @@ void paint_buffer_nlines(struct te_buffer *buf, int nlines)
 
 	bstring s;
 	int i = 0;
-	int count = buf->top_char;
+	int count = max(buf->top_char - 1, 0);
 
 	for(i = 0; i < nlines; i++) {
 		s = current_line_as_bstring(buf->contents, count);
 		draw_line(s, i);
-		count += blength(s) + 1;
-
+		count += blength(s);
 		bdestroy(s);
-		if (count >= blength(buf->contents))
+
+		if (is_last_line(buf->contents, count) == TRUE)
 		    break;
 	}
 
-	miniprintf("count %d", count);
 	restoreyx();
 	refresh();
 
@@ -123,13 +122,7 @@ void draw_line(bstring s, int y)
 		if (bchar(s, i) == '\t') {
 			for (j = 0; j < TAB_LEN; j++)
 				mvwaddch(buffer_win, y, screen_abs++, ' ');
-		}
-/* 		else if (bchar(s, i) == '\n') { */
-/* 				mvwaddstr(buffer_win, y, screen_abs++, "\\n"); */
-/* 				screen_abs++; */
-/* 				mvwaddch(buffer_win, y, screen_abs++, '\n'); */
-		/* 		} */ 
-		else if (i == COLS - 1) {
+		} else if (i == COLS - 1) {
 			mvwaddch(buffer_win, y, screen_abs, '\\');
 			screen_next_line(current_buf);
 		} else {

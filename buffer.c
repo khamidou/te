@@ -129,25 +129,29 @@ int screen_line_length(bstring b, int point)
 
 bstring current_line_as_bstring(bstring b, int point)
 {
-	if (point > blength(b) - 1)
-		point = blength(b) - 1;
+	if (point > blength(b))
+		point = blength(b);
 
 	int s_offset = bstrrchrp(b, '\n', max(point, 0));
 	if (s_offset == BSTR_ERR)
 		s_offset = 0;
 
-	int e_offset = bstrchrp(b, '\n', point + 1);
+	int e_offset = bstrchrp(b, '\n', max(point + 1, 0));
 	if (e_offset == BSTR_ERR) {
 		e_offset = blength(b);
 	}
 
 	if (s_offset == 0) 	/* the first line of the file */
-		return bmidstr(b, s_offset, e_offset - s_offset);
-	else if (e_offset == blength(b)) {
-		return bmidstr(b, s_offset + 1, e_offset + 1 - s_offset);
+		return bmidstr(b, 0, e_offset);
+/* 	else if (e_offset == blength(b)) { */
+		
+/* 		return bmidstr(b, s_offset + 1, e_offset + 1 - s_offset); */
+
+/* 	} */
+	else	{		/* otherwise, skip the first '\n' character */
+		bstring s1 = bmidstr(b, s_offset + 1, e_offset - s_offset);
+		return s1;
 	}
-	else			/* otherwise, skip the first '\n' character */
-		return bmidstr(b, s_offset + 1, e_offset - s_offset);
 }
 
 /*
@@ -269,3 +273,13 @@ void write_buffer(struct te_buffer *buf)
 	free(c);
 }
 
+/*
+  Is the point in the last line ?
+*/
+int is_last_line(bstring s, int point)
+{
+	if (bstrchrp(s, '\n', max(point, 0)) == BSTR_ERR)
+		return TRUE;
+	else
+		return FALSE;
+}
