@@ -129,17 +129,24 @@ int screen_line_length(bstring b, int point)
 
 bstring current_line_as_bstring(bstring b, int point)
 {
+	if (point > blength(b) - 1)
+		point = blength(b) - 1;
+
 	int s_offset = bstrrchrp(b, '\n', max(point, 0));
 	if (s_offset == BSTR_ERR)
 		s_offset = 0;
 
 	int e_offset = bstrchrp(b, '\n', point + 1);
-	if (e_offset == BSTR_ERR)
+	if (e_offset == BSTR_ERR) {
 		e_offset = blength(b);
+	}
 
-	if (s_offset == 0) /* the first line of the file */
+	if (s_offset == 0) 	/* the first line of the file */
 		return bmidstr(b, s_offset, e_offset - s_offset);
-	else 
+	else if (e_offset == blength(b)) {
+		return bmidstr(b, s_offset + 1, e_offset + 1 - s_offset);
+	}
+	else			/* otherwise, skip the first '\n' character */
 		return bmidstr(b, s_offset + 1, e_offset - s_offset);
 }
 

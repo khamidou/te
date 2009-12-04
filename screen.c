@@ -58,13 +58,14 @@ void paint_buffer_nlines(struct te_buffer *buf, int nlines)
 	for(i = 0; i < nlines; i++) {
 		s = current_line_as_bstring(buf->contents, count);
 		draw_line(s, i);
-		count += blength(s);
+		count += blength(s) + 1;
 
 		bdestroy(s);
 		if (count >= blength(buf->contents))
 		    break;
 	}
-	
+
+	miniprintf("count %d", count);
 	restoreyx();
 	refresh();
 
@@ -192,6 +193,9 @@ void screen_next_line(struct te_buffer *buf)
 	else {
 		scroll_up(buffer_win);
 		bstring s = current_line_as_bstring(buf->contents, buf->point - 1);
+		if (biseq(bfromcstr(""), s))
+			return;
+
 		draw_line(s, LINES - 4);
 		bdestroy(s);
 
