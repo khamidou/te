@@ -3,11 +3,9 @@
 #include "util.h"
 #include "keyb.h"
 
-static int scr_y, scr_x;
 
-
-#define saveyx() getyx(stdscr, scr_y, scr_x)
-#define restoreyx() move(scr_y, scr_x)
+#define saveyx() { int scr_y, scr_x; getyx(stdscr, scr_y, scr_x); do { } while(0)
+#define restoreyx() move(scr_y, scr_x); } do { } while(0)
 
 void init_windows(void)
 {
@@ -116,20 +114,25 @@ void draw_line(bstring s, int y)
 	saveyx();
 	move(y, 0);
 	clrtoeol();
-
+	
 	/* FIXME : wrap line if we go beyond COLS */
 	for (i = 0; i < blength(s); i++) {
+		if (i == COLS - 1) {
+			mvwaddch(buffer_win, y, screen_abs, '\\');
+			goto bail_out;
+			return;
+		}
+		
 		if (bchar(s, i) == '\t') {
 			for (j = 0; j < TAB_LEN; j++)
 				mvwaddch(buffer_win, y, screen_abs++, ' ');
-		} else if (i == COLS - 1) {
-			mvwaddch(buffer_win, y, screen_abs, '\\');
-			screen_next_line(current_buf);
-		} else {
+		}  else {
 			mvwaddch(buffer_win, y, screen_abs, bchar(s, i));
 			screen_abs++;
 		}
 	}
+	
+bail_out:
 	restoreyx();
 }
 
@@ -241,6 +244,17 @@ int screen_move_right(struct te_buffer *buf)
 			} else {
 				buf->x++;
 			}
+
+			if(buf->x == COLS - 1) { 
+				bstring s = current_line_as_bstring(buf->contents, buf->point);
+				int off = screen_numchar_to_offset(s, COLS - 1);
+				bstring s2 = bmidstr(s, off, blength(s) - off);
+				draw_line(s2, buf->y);
+				bdestroy(s);
+				bdestroy(s2);
+				wmove(buffer_win, buf->y, 0);
+				refresh();
+			}
 	}
 
 	move(buf->y, buf->x);
@@ -345,16 +359,15 @@ void screen_delete_char(struct te_buffer *buf)
 	bstring s = current_line_as_bstring(buf->contents, max(buf->point - 1, 0));
 	char c = curr_char(buf);
 	delete_char(buf);
-	move_right(buf);
 
-	if (buf->dirty < 1)
-		buf->dirty = 1;
+
+	buf->dirty = 1;
 
 	if (c == '\n') {
 		bstring s2 = current_line_as_bstring(buf->contents, max(buf->point - blength(s), 0));
 		statusprintf("s : %s", bstr2cstr(s, '\0'));
 		clrtoeol();
-		clear_nfirst_lines(buffer_win, buf->y);
+		clear_nfirst_lines(buffer_win, max(buf->y - 1, 0));
 		scroll_up(buffer_win);
  		paint_buffer_nlines(buf, buf->y + 1); 
 //		screen_prev_line(buf);

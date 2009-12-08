@@ -30,6 +30,7 @@ struct te_buffer* 		load_buffer(char *filename);
 
 void 				init_buffers(void);
 int 				line_length(bstring b, int point);
+int 				screen_numchar_to_offset(bstring s, int x);
 int 				screen_line_length(bstring b, int point);
 bstring				current_line_as_bstring(bstring b, int point);
 int				prev_char(struct te_buffer *buf);

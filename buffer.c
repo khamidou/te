@@ -104,6 +104,17 @@ int line_length(bstring b, int point)
 					    */
 }
 
+/* How many chars are there between 0 and X ? */
+int screen_numchar_to_offset(bstring s, int x)
+{
+	int i = 0;
+	
+	for (i = 0; i < x; i++)
+		if (bchar(s, i) == '\t')
+			i += TAB_LEN;
+		else
+			i += 1;
+}
 /*
   The length of a line as displayed on the screen.
  */
