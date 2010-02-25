@@ -254,6 +254,7 @@ void insert_char(struct te_buffer *buf, char c)
 		return;
 
 	binsertch(buf->contents, buf->point, 1, c);
+	buf->dirty = 1;
 	return;
 }
 
@@ -264,6 +265,8 @@ void delete_char(struct te_buffer *buf)
 
 	bdelete(buf->contents, buf->point, 1);
 	move_left(buf);
+	buf->dirty = 1;
+
 	return;
 }
 

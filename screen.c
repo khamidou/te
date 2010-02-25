@@ -35,6 +35,12 @@ void cleanup_windows(void)
 	endwin();
 }
 
+void pause(void)
+{
+	/* used for debugging purposes */
+	getch();
+}
+
 void paint_buffer(struct te_buffer *buf)
 {
 	paint_buffer_nlines(buf, LINES - 2);
@@ -338,7 +344,7 @@ void screen_insert_char(struct te_buffer *buf, char c)
 
 	if (c == '\n') {
 		clrtoeol();
-		clear_nfirst_lines(buffer_win, buf->y - 1);
+		clear_nfirst_lines(buffer_win, max(buf->y - 1, 0));
 		scroll_down(buffer_win);
 		paint_buffer_nlines(buf, buf->y + 1);
 		paint_nthline(buf, buf->y + 2, buf->y + 1);
@@ -356,31 +362,28 @@ void screen_delete_char(struct te_buffer *buf)
 		return;
 
 	move_left(buf);
-	bstring s = current_line_as_bstring(buf->contents, max(buf->point - 1, 0));
+	bstring previous_line = current_line_as_bstring(buf->contents, max(buf->point - 1, 0));
 	char c = curr_char(buf);
 	delete_char(buf);
-
-
-	buf->dirty = 1;
+	bstring s = current_line_as_bstring(buf->contents, max(buf->point, 0));
 
 	if (c == '\n') {
-		bstring s2 = current_line_as_bstring(buf->contents, max(buf->point - blength(s), 0));
 		statusprintf("s : %s", bstr2cstr(s, '\0'));
-		clrtoeol();
-		clear_nfirst_lines(buffer_win, max(buf->y - 1, 0));
+		clear_nfirst_lines(buffer_win, max(buf->y, 0));
 		scroll_up(buffer_win);
  		paint_buffer_nlines(buf, buf->y + 1); 
-//		screen_prev_line(buf);
 		screen_prev_line(buf);
-		buf->x = screen_line_length(s, 0);
+		buf->x = max(screen_line_length(previous_line, 0) - 1, 0); /* max because scr_l_len("a") == 1 and coords begin at 0 */
+
 		move(buf->y, buf->x);
 	} else {
-		bstring s = current_line_as_bstring(buf->contents, buf->point - 1);
 		draw_line(s, buf->y);
 		screen_move_left(buf);
 		move_right(buf); /* yes it's ugly but I don't feel like recoding screen_move_right atm */
 	}
 
+	bdestroy(previous_line);
+	bdestroy(s);
 }
 
 void screen_switch_buffer(struct te_buffer *buf)

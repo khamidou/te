@@ -16,10 +16,10 @@ void input_loop(void)
 
 		refresh();
 
-/* 		miniprintf("%c, line length: %d, y: %d, x%d", */
-/* 			   (bchar(current_buf->contents, current_buf->point) == '\n') ? 'N' : bchar(current_buf->contents, current_buf->point), */
-/* 			   screen_line_length(current_buf->contents, current_buf->point), */
-/* 			   current_buf->y, current_buf->x); */
+		miniprintf("%c, line length: %d, y: %d, x%d",
+			   (bchar(current_buf->contents, current_buf->point) == '\n') ? 'N' : bchar(current_buf->contents, current_buf->point),
+			   screen_line_length(current_buf->contents, current_buf->point),
+			   current_buf->y, current_buf->x);
 
 	}
 
@@ -61,6 +61,7 @@ void process_command(int c)
 				break;
 
 			case 'i':
+			case 0x1B: /* escape */
 			case KEY_END:
 				/* switch between command and input mode */
 				command_mode = 0;
@@ -102,7 +103,8 @@ void process_input(int c)
 			case KEY_UP:
 				screen_move_up(current_buf);
 				break;
-				
+
+			case 0x1B: /* escape */
 			case KEY_END:
 				command_mode = 1;
 				miniprintf("-- COMMAND --");
