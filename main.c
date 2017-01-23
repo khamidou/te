@@ -7,6 +7,7 @@
 #include <curses.h>
 #include "interp.h"
 #include "screen.h"
+#include "keyb.h"
 
 void init_interp(void);
 void cmdline_help(void);
@@ -23,9 +24,8 @@ int main(int argc, char **argv)
 	init_windows();
 	init_buffers();
 
-	for (argv++; *argv != NULL ; argv++) 
+	for (argv++; *argv != NULL ; argv++)
 		current_buf = load_buffer(*argv);
-		
 
 	paint_buffer(current_buf);
 	statusprintf("%s", current_buf->name);

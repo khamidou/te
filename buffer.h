@@ -41,5 +41,6 @@ int 				move_left(struct te_buffer *buf);
 void 				insert_char(struct te_buffer *buf, char c);
 void 				delete_char(struct te_buffer *buf);
 int 				is_last_line(bstring s, int point);
+void                write_buffer(struct te_buffer *buf);
 
 #endif

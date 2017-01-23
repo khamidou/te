@@ -2,6 +2,7 @@
 #include "screen.h"
 #include "util.h"
 #include "keyb.h"
+#include "errors.h"
 
 
 #define saveyx() { int scr_y, scr_x; getyx(stdscr, scr_y, scr_x); do { } while(0)
@@ -120,7 +121,7 @@ void draw_line(bstring s, int y)
 	saveyx();
 	move(y, 0);
 	clrtoeol();
-	
+
 	/* FIXME : wrap line if we go beyond COLS */
 	for (i = 0; i < blength(s); i++) {
 		if (i == COLS - 1) {
@@ -128,7 +129,7 @@ void draw_line(bstring s, int y)
 			goto bail_out;
 			return;
 		}
-		
+
 		if (bchar(s, i) == '\t') {
 			for (j = 0; j < TAB_LEN; j++)
 				mvwaddch(buffer_win, y, screen_abs++, ' ');
@@ -137,7 +138,7 @@ void draw_line(bstring s, int y)
 			screen_abs++;
 		}
 	}
-	
+
 bail_out:
 	restoreyx();
 }
@@ -216,17 +217,17 @@ int screen_move_left(struct te_buffer *buf)
 
 	if(move_left(buf) == ERR)
 		return ERR;
-	
 	if (curr_char(buf) == '\n') {
 			screen_prev_line(buf);
 			buf->x = screen_line_length(buf->contents, buf->point);
-	} else { 
-		if (buf->x > 0)
+	} else {
+		if (buf->x > 0) {
 			if (curr_char(buf) == '\t') {
 				buf->x -= TAB_LEN;
 			} else {
 					buf->x--;
 			}
+        }
 	}
 
 	move(buf->y, buf->x);
@@ -243,7 +244,7 @@ int screen_move_right(struct te_buffer *buf)
 
 	if (prev_char(buf) == '\n') {
 		screen_next_line(buf);
-	} else { 
+	} else {
 		/* tab is the only character larger than 1 */
 			if (prev_char(buf) == '\t') {
 				buf->x += TAB_LEN;
@@ -251,7 +252,7 @@ int screen_move_right(struct te_buffer *buf)
 				buf->x++;
 			}
 
-			if(buf->x == COLS - 1) { 
+			if(buf->x == COLS - 1) {
 				bstring s = current_line_as_bstring(buf->contents, buf->point);
 				int off = screen_numchar_to_offset(s, COLS - 1);
 				bstring s2 = bmidstr(s, off, blength(s) - off);

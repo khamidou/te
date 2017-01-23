@@ -26,6 +26,8 @@ int  screen_move_left(struct te_buffer *buf);
 int  screen_move_right(struct te_buffer *buf);
 void screen_move_up(struct te_buffer *buf);
 void screen_move_down(struct te_buffer *buf);
+void screen_delete_char(struct te_buffer *buf);
+void screen_insert_char(struct te_buffer *buf, char c);
 
 void statusprintf(char *fmt, ...);
 void miniprintf(char *fmt, ...);

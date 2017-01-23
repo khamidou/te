@@ -8,11 +8,12 @@ void input_loop(void)
 	while(1) {
 
 		int c = getch();
-		
-		if (command_mode)
+
+		if (command_mode) {
 			process_command(c);
-		else 
+		} else {
 			process_input(c);
+        }
 
 		refresh();
 

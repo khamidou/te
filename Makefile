@@ -27,7 +27,6 @@ interp.o: interp.c
 bstrlib.o: bstrlib.c
 	$(CC) $(CFLAGS) bstrlib.c
 
-clean: 
+clean:
 	rm $(OBJS)
-	rm *~
 	rm te

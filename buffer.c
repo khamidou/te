@@ -2,10 +2,12 @@
 #include <curses.h>
 
 #include "zalloc.h"
-#include "error.h"
+#include "errors.h"
 #include "buffer.h"
 #include "interp.h"
 #include "util.h"
+#include "screen.h"
+
 
 void init_buffers(void)
 {
@@ -51,13 +53,15 @@ void free_all_buffers(void)
 struct te_buffer* search_buffer(char *name)
 {
 	if (name == NULL)
-		return;
+		return NULL;
 
 	struct te_buffer *b;
 	TAILQ_FOREACH(b, &buffers_head, buffers) {
 		if (strcmp(name, b->name) == 0)
 			return b;
 	}
+
+    return NULL;
 }
 
 struct te_buffer* load_buffer(char *filename)
@@ -71,7 +75,7 @@ struct te_buffer* load_buffer(char *filename)
 		fail("Unable to allocate memory for buffer contents");
 
 	FILE *fp = fopen(filename, "r");
-	
+
 	if (fp == NULL) {
 		miniprintf("Creating an empty buffer");
 	} else {
@@ -108,12 +112,14 @@ int line_length(bstring b, int point)
 int screen_numchar_to_offset(bstring s, int x)
 {
 	int i = 0;
-	
+
 	for (i = 0; i < x; i++)
 		if (bchar(s, i) == '\t')
 			i += TAB_LEN;
 		else
 			i += 1;
+
+    return i;
 }
 /*
   The length of a line as displayed on the screen.
@@ -173,7 +179,7 @@ bstring current_line_as_bstring(bstring b, int point)
 int prev_char(struct te_buffer *buf)
 {
 	if (buf == NULL)
-		return;
+		return -1;
 
 	return bchar(buf->contents, buf->point - 1);
 }
@@ -181,7 +187,7 @@ int prev_char(struct te_buffer *buf)
 int curr_char(struct te_buffer *buf)
 {
 	if (buf == NULL)
-		return;
+		return -1;
 
 	return bchar(buf->contents, buf->point);
 }
@@ -189,7 +195,7 @@ int curr_char(struct te_buffer *buf)
 int next_char(struct te_buffer *buf)
 {
 	if (buf == NULL)
-		return;
+		return -1;
 
 	return bchar(buf->contents, buf->point + 1);
 }
@@ -197,7 +203,7 @@ int next_char(struct te_buffer *buf)
 int move_left(struct te_buffer *buf)
 {
 	if (buf == NULL)
-		return;
+		return -1;
 
 	if (buf->point > 0) {
 		buf->point--;
@@ -214,7 +220,7 @@ int move_left(struct te_buffer *buf)
 int move_right(struct te_buffer *buf)
 {
 	if (buf == NULL)
-		return;
+		return -1;
 
 	if (buf->point < blength(buf->contents)) {
 		buf->point++;
